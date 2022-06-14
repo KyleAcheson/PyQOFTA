@@ -68,6 +68,7 @@ class SharcTrajectory(Trajectory):
         self.nts = len(self.time)
         self.dt = self.time[1]-self.time[0]
         self.weight = 1
+        self.norm_mode_coords = None
 
     @classmethod
     def init_from_xyz(cls, fpath):
@@ -140,7 +141,43 @@ class SharcTrajectory(Trajectory):
         bond_connectivity = [bond.connectivity for bond in bond_objs]
         angle_connectivity = [ang.connectivity for ang in ang_objs]
         dihedral_connectivity = [dih.connectivity for dih in dih_objs]
-        return np.array(distances), np.array(angles), np.array(dihedrals)
+        return np.array(distances), np.array(angles), np.array(dihedrals)  # init dihedrals as float64 is a waste (if empty)
+
+    def norm_mode_transform(self, ref_structure, mass_weighted=False):
+        self.norm_mode_coords = np.zeros((ref_structure.nfreqs, self.nts))
+        norm_mode_mat = ref_structure.ret_normal_mode_matrix(mass_weighted)
+        for idx, molecule in enumerate(self.geometries):
+            displacement_vec = molecule.coordinates.flatten() - ref_structure.coordinates.flatten()
+            self.norm_mode_coords[:, idx] = np.dot(displacement_vec, norm_mode_mat)
+
+    def nma_analysis(self, time_intervals: list) -> tuple[npt.NDArray, npt.NDArray]:
+        """
+        A method for trajectory normal mode analysis. Calculates the average of the normal mode coordinates over
+        a number of time intervals specified. Also calculates the standard deviation of these modes within the intervals.
+        This gives an indicator of how active a given normal mode is within the trajectory.
+        :param time_intervals: a series of time intervals - can just be the whole of time, or can specify a more informed
+        selection of intervals that reflect the period of a vibration.
+        :type time_intervals: list
+        :return: average of the normal mode coordinates and the standard deviation over the set of time intervals
+        :rtype: numpy.ndarray
+        """
+        nvib = np.shape(self.norm_mode_coords)[0]
+        ntints = len(time_intervals)
+        interval_std = np.zeros((nvib, ntints))
+        interval_avg = np.zeros((nvib, ntints))
+        for i in range(ntints):
+            time_interval = time_intervals[i]
+            tstart, tend = time_interval[0], time_interval[1]
+            tdiff = tend - tstart
+            nm_coords = self.norm_mode_coords[:, tstart:tend] # select normal mode coords over specified time interval
+            summed_over_tint = np.sum(nm_coords, axis=1)  # coords summed over time interval (used for std calculation)
+            sq_summed_over_tint = np.sum(nm_coords**2, axis=1) # sum of the coords squared over time interval
+            if tdiff != 0: # calculate standard dev. of normal modes over each time interval
+                avg_tint = summed_over_tint / tdiff
+                interval_avg[:, i] = avg_tint
+                avg_sq_tint = sq_summed_over_tint / tdiff
+                interval_std[:, i] = (tdiff / (tdiff - 1) * (avg_sq_tint - avg_tint ** 2)) ** .5
+        return interval_avg, interval_std
 
 
 
@@ -505,6 +542,7 @@ class Vibration(Molecule):
         molden_out = self.read_molden(fpath)
         Molecule.__init__(self, molden_out[0], molden_out[1])
         self.freqs = molden_out[2]
+        self.nfreqs = len(self.freqs)
         self.modes = molden_out[3]
 
     @staticmethod
@@ -570,7 +608,29 @@ class Vibration(Molecule):
 #        dims = np.shape(vibs)
 #        if dims != (nfreq, self.natoms, 3):
 #            raise Exception("Vibrational modes dimensions do not match")
-#
+
+
+    def ret_normal_mode_matrix(self, mass_weight=False) -> npt.NDArray:
+        """
+        A method to calculate and return the pseudo inverse of the square matrix (nfreqs, 3*natom) that
+        defines the collective normal modes. Can be optionally mass weighted.
+        :param mass_weight: flag to mass weight the normal modes
+        :type mass_weight: bool
+        :return: normal mode matrix - rows define the modes and columns the atom coordinates
+        :rtype: numpy.ndarray
+        """
+        nm_mat = np.reshape(self.modes, (self.nfreqs, 3*self.natoms))
+        nm_mat = np.linalg.pinv(nm_mat)
+        if mass_weight:
+            mass_mat = self.__mass_matrix(self.Zs, self.nfreqs, self.natoms)
+            nm_mat = np.dot(mass_mat, nm_mat)
+        return nm_mat
+
+    @staticmethod
+    def __mass_matrix(atomic_masses: list, nfreqs: int, natoms: int) -> npt.NDArray:
+        mw_atom_vec = np.array([a ** 0.5 for a in atomic_masses for i in range(3)])
+        mass_mat = np.eye(nfreqs, natoms * 3) * mw_atom_vec
+        return mass_mat
 
 
 
@@ -698,12 +758,21 @@ class DihedralAngle(InternalCoordinate):
 
 if __name__ == "__main__":
     # testing molecule class
-    mol = Molecule.init_from_xyz('test.xyz')
-    D = mol.distance_matrix()
-    mol.gen_internal_coords(D)
-    tdir = '/Users/kyleacheson/PycharmProjects/SHARC_NMA/TRAJ_00001/output.xyz'
-    trj = SharcTrajectory.init_from_xyz(tdir)
-    [bonds, angles, dihedrals] = trj.internal_coordinates()
+    #molecule_path = 'data/Molecules/cs2.xyz'
+    #mol = Molecule.init_from_xyz(molecule_path)
+    #D = mol.distance_matrix()
+    #mol.gen_internal_coords(D)
+    #trajectory_path = 'data/Trajectories/CS2/output.xyz'
+    #trj = SharcTrajectory.init_from_xyz(trajectory_path)
+    #[bonds, angles, dihedrals] = trj.internal_coordinates()
 
-    breakpoint()
+    freq_path = 'data/Freq/freq.molden'
+    ref_structure = Vibration(freq_path)
+    #norm_mode_matrix = ref_structure.ret_normal_mode_matrix(mass_weight=True)
+
+    trajectory_path = 'data/Trajectories/CS2/output.xyz'
+    trj = SharcTrajectory.init_from_xyz(trajectory_path)
+    trj.norm_mode_transform(ref_structure, mass_weighted=True)
+    [avg, std] = trj.nma_analysis([[0, 2001]])
+
     print('Testing Done')
