@@ -1,20 +1,20 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name = 'PyQOFTA',
+    name = 'pyqofta',
 
     version = '0.0.0',
 
     description = 'A python package for clustering quantum dynamcis simulations and reconstructing experimental observables',
 
 
-    package_dir = {'':'src'},
+    packages=find_packages("."),
 
-    packages = ['Base',
-                'Cluster',
-                'LsqFit',
-                'Observables',
-  ],
+
+
+#    packages = ['trajectories',
+#                'molecules',
+#  ],
 
     author = 'Kyle Acheson',
     author_email = '---',
