@@ -15,9 +15,8 @@ import pyqofta.molecules as mol
 __all__ = [
     'Ensemble',
     'Trajectory',
-    'SharcTrajectory',
+    'TrajectorySH',
 ]
-
 
 
 
@@ -30,35 +29,112 @@ class Ensemble:
 
 
 class Trajectory:
+    """
+    Class to represent a general Trajectory. This is the parent class which is
+    inhereted by a series of other classes that represent more specifric trajectory structures.
+    For example, trajectories calculated via. Surface Hopping (SH), Multi-configurational Ehrenfest (MCE),
+    Ab-Initio Multiple Spawning (AIMS) etc. This class is only used to define methods which are universal
+    wrt the type of trajectory.
 
-    def __init__(self, geometries, time, width=None, pops=None):
+    Attributes:
+    -----------
+    self.geometries: list
+        list of Molecule objects that describe coorindates and associated properties over all timesteps
+    self.time: list
+        time vector
+    self.nts: int
+        number of time steps in trajectory
+    self.dt: int
+        timestep size (typically fs)
+    self.widths: numpy.ndarray
+        array of widths for methods with a frozen Gaussian description of the nuclear wavefunction (default = None)
+    self.pops: numpy.ndarray
+        populations of electronic states (default = None)
+
+    Methods:
+    ________
+    internal_coordinates
+
+    """
+
+    def __init__(self, geometries, time, widths=None, pops=None):
         self.geometries = geometries
         self.time = time
         self.nts = len(self.time)
         self.dt = self.time[1]-self.time[0]
-        self.width = width
+        self.widths = widths
         self.pops = pops
         self.weight = 1
 
-    def rmsd(self, ref_geom):
-        pass
-
-    def convolution(self, func):
-        pass
-
-    def autocorrolation(self):
-        pass
-
     def internal_coordinates(self):
-        pass
+        """
+        A method to generate and return all combinations of internal coordinates over all
+        timestep for a given instance of a trajectory.
+        :return: seperate arrays for distances, angles and dihedral angles
+        :rtype: nump.ndarray
+        """
+        # THIS IS A BIT JANKY - NEED TO REWRITE AND THNK ABOUT IMPLEMENTATION OF IC
+        # OBJECTS AS CURRENTLY IMPLEMENTED.
+        distances, angles, dihedrals = [], [], []
+        for timestep in self.geometries:
+            D = timestep.distance_matrix()
+            ICs = timestep.ret_internal_coords(D)
+            bond_objs = list(filter(lambda x: type(x) == mol.BondDistance, ICs))
+            distances.append([bond.magnitude for bond in bond_objs])
+            ang_objs = list(filter(lambda x: type(x) == mol.BondAngle, ICs))
+            angles.append([ang.magnitude for ang in ang_objs])
+            dih_objs = list(filter(lambda x: type(x) == mol.DihedralAngle, ICs))
+            dihedrals.append([dih.magnitude for dih in dih_objs])
+        bond_connectivity = [bond.connectivity for bond in bond_objs]
+        angle_connectivity = [ang.connectivity for ang in ang_objs]
+        dihedral_connectivity = [dih.connectivity for dih in dih_objs]
+        return np.array(distances), np.array(angles), np.array(dihedrals)  # init dihedrals as float64 is a waste (if empty)
 
-    def coarse_grain(self, tsteps):
-        pass
+        @staticmethod
+        def broadcast(func, iterable, *args):
+            """
+            A method that allows for the broadcasting of a function over elements of an iterable.
+            This generalised function may contain additional arguments. This is to allow for the
+            broadcast of molecular level functions over the individual timesteps of a trajectory object.
+            :param func: any function that takes elements of iterable as an argument
+            :param iterable: an iterable defined as a property of the Trajectory class
+            :param args: additional arguments to function
+            :return: a Trajectory property with a function applied to its elements
+            :rtype: map object
+            """
+            return map(lambda elem: func(elem, *args), iterable)
 
 
-class SharcTrajectory(Trajectory):
 
-    trj_file = 'output.xyz'
+class TrajectorySH(Trajectory):
+    """
+    Class to represent a Surface Hopping trajectory (may be from Sharc or Newton-X).
+    TrajectorySH inherits from the general Trajectory class.
+    Here the nuclear wavefunction is a delta-function and so widths are not included as a property.
+
+    Attributes:
+    -----------
+    self.geometries: list
+        list of Molecule objects that describe coorindates and associated properties over all timesteps
+    self.time: list
+        time vector
+    self.nts: int
+        number of time steps in trajectory
+    self.dt: int
+        timestep size (typically fs)
+
+    Methods:
+    ________
+
+    Class Methods:
+    --------------
+    init_from_xyz(cls, fpath)
+
+    Static Methods:
+    ---------------
+    read_sharc(trj_file)
+    """
+
 
     def __init__(self, geometries, time):
         self.geometries = geometries
@@ -66,7 +142,6 @@ class SharcTrajectory(Trajectory):
         self.nts = len(self.time)
         self.dt = self.time[1]-self.time[0]
         self.weight = 1
-        self.norm_mode_coords = None
 
     @classmethod
     def init_from_xyz(cls, fpath):
@@ -75,7 +150,7 @@ class SharcTrajectory(Trajectory):
         :param fpath: trajectory output file
         :type fpath:str
         :return: trajectory object
-        :rtype: SharcTrajectory
+        :rtype: TrajectorySH
         """
         geoms, tvec = cls.read_sharc(fpath)
         return cls(
@@ -117,71 +192,6 @@ class SharcTrajectory(Trajectory):
                     coords, labels = [], []
         return geometries, time
 
-    def internal_coordinates(self):
-        """
-        A method to generate and return all combinations of internal coordinates over all
-        timestep for a given instance of a trajectory.
-        :return: seperate arrays for distances, angles and dihedral angles
-        :rtype: nump.ndarray
-        """
-        # THIS IS A BIT JANKY - NEED TO REWRITE AND THNK ABOUT IMPLEMENTATION OF IC
-        # OBJECTS AS CURRENTLY IMPLEMENTED.
-        distances, angles, dihedrals = [], [], []
-        for timestep in self.geometries:
-            D = timestep.distance_matrix()
-            ICs = timestep.ret_internal_coords(D)
-            bond_objs = list(filter(lambda x: type(x) == mol.BondDistance, ICs))
-            distances.append([bond.magnitude for bond in bond_objs])
-            ang_objs = list(filter(lambda x: type(x) == mol.BondAngle, ICs))
-            angles.append([ang.magnitude for ang in ang_objs])
-            dih_objs = list(filter(lambda x: type(x) == mol.DihedralAngle, ICs))
-            dihedrals.append([dih.magnitude for dih in dih_objs])
-        bond_connectivity = [bond.connectivity for bond in bond_objs]
-        angle_connectivity = [ang.connectivity for ang in ang_objs]
-        dihedral_connectivity = [dih.connectivity for dih in dih_objs]
-        return np.array(distances), np.array(angles), np.array(dihedrals)  # init dihedrals as float64 is a waste (if empty)
-
-    def norm_mode_transform(self, ref_structure, mass_weighted=False):
-        self.norm_mode_coords = np.zeros((ref_structure.nfreqs, self.nts))
-        norm_mode_mat = ref_structure.ret_normal_mode_matrix(mass_weighted)
-        for idx, molecule in enumerate(self.geometries):
-            displacement_vec = molecule.coordinates.flatten() - ref_structure.coordinates.flatten()
-            self.norm_mode_coords[:, idx] = np.dot(displacement_vec, norm_mode_mat)
-
-    def nma_analysis(self, time_intervals: list) -> tuple[npt.NDArray, npt.NDArray]:
-        """
-        A method for trajectory normal mode analysis. Calculates the average of the normal mode coordinates over
-        a number of time intervals specified. Also calculates the standard deviation of these modes within the intervals.
-        This gives an indicator of how active a given normal mode is within the trajectory.
-        :param time_intervals: a series of time intervals - can just be the whole of time, or can specify a more informed
-        selection of intervals that reflect the period of a vibration.
-        :type time_intervals: list
-        :return: average of the normal mode coordinates and the standard deviation over the set of time intervals
-        :rtype: numpy.ndarray
-        """
-        nvib = np.shape(self.norm_mode_coords)[0]
-        ntints = len(time_intervals)
-        interval_std = np.zeros((nvib, ntints))
-        interval_avg = np.zeros((nvib, ntints))
-        for i in range(ntints):
-            time_interval = time_intervals[i]
-            tstart, tend = time_interval[0], time_interval[1]
-            tdiff = tend - tstart
-            nm_coords = self.norm_mode_coords[:, tstart:tend] # select normal mode coords over specified time interval
-            summed_over_tint = np.sum(nm_coords, axis=1)  # coords summed over time interval (used for std calculation)
-            sq_summed_over_tint = np.sum(nm_coords**2, axis=1) # sum of the coords squared over time interval
-            if tdiff != 0: # calculate standard dev. of normal modes over each time interval
-                avg_tint = summed_over_tint / tdiff
-                interval_avg[:, i] = avg_tint
-                avg_sq_tint = sq_summed_over_tint / tdiff
-                interval_std[:, i] = (tdiff / (tdiff - 1) * (avg_sq_tint - avg_tint ** 2)) ** .5
-        return interval_avg, interval_std
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -191,7 +201,7 @@ if __name__ == "__main__":
     #D = mol.distance_matrix()
     #mol.gen_internal_coords(D)
     #trajectory_path = 'data/Trajectories/CS2/output.xyz'
-    #trj = SharcTrajectory.init_from_xyz(trajectory_path)
+    #trj = TrajectorySH.init_from_xyz(trajectory_path)
     #[bonds, angles, dihedrals] = trj.internal_coordinates()
 
     freq_path = 'data/Freq/freq.molden'
@@ -199,7 +209,7 @@ if __name__ == "__main__":
     #norm_mode_matrix = ref_structure.ret_normal_mode_matrix(mass_weight=True)
 
     trajectory_path = 'data/Trajectories/CS2/output.xyz'
-    trj = SharcTrajectory.init_from_xyz(trajectory_path)
+    trj = TrajectorySH.init_from_xyz(trajectory_path)
     trj.norm_mode_transform(ref_structure, mass_weighted=True)
     [avg, std] = trj.nma_analysis([[0, 2001]])
 

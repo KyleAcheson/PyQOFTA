@@ -18,6 +18,7 @@ from scipy.sparse import csr_matrix, triu, dok_matrix
 __all__ = [
     'Molecule',
     'Vibration',
+    'InternalCoordinates',
 ]
 
 class AngleDefError(ValueError):
@@ -347,37 +348,49 @@ class Molecule:
         return phi
 
 
-    def calculate_internal_coords(self) -> tuple[list, list, list]:
+    def calculate_internal_coords(self):
         """
         A method that calculates all possible internal coordinates
         (bond distances, angles, and dihedrals) as well as their connectivity.
-        :return: three seperate lists of bond length, angle and dihedral (each list is a list of tuples)
-        :rtype: lists of tuples
+        :return: Internal coordinates object containing bonds, angles and dihedrals + their connectivities
+        :rtype: InternalCoordinates
         """
         bond_lengths, angles, dihedrals = [], [], []
+        bond_connectivities, angle_connectivities, dihedral_connectivities = [], [], []
         if self.natoms > 1: # only one bond length
             bond_connectivity = [0, 1] # first bond connecitivty = atom 0 and 1
             r = self.bond_length(self, bond_connectivity) # get bond length for given atoms
-            bond_lengths.append((bond_connectivity, r)) # append tuple of connecitvity and bond length
+            bond_lengths.append(r) # append tuple of connecitvity and bond length
+            bond_connectivities.append(bond_connectivity)
         if self.natoms > 2: # two bond lengths and one angle
             bond_connectivity = [0, 2]
             r = self.bond_length(self, bond_connectivity)
-            bond_lengths.append((bond_connectivity, r))
+            bond_lengths.append(r)
+            bond_connectivities.append(bond_connectivity)
             ang_connectivity = [2, 0, 1] # first angle is centred on atom 0 and between bonds r_01 and r_02
             ang = self.angle(self, ang_connectivity) # get angle for given atoms
-            angles.append((ang_connectivity, ang)) # append tuple
+            angles.append(ang) # append tuple
+            angle_connectivities.append(ang_connectivity)
         if self.natoms > 3: # n-1 bond lengths, n-2 angles and n-3 dihedrals
             for i in range(3, self.natoms):
                 bond_connectivity = [i - 3, 1]
                 r = self.bond_length(self, bond_connectivity)
-                bond_lengths.append((bond_connectivity, r))
+                bond_lengths.append(r)
+                bond_connectivities.append(bond_connectivity)
                 ang_connectivity = [i, i - 3, i - 2]
                 ang = self.angle(self, ang_connectivity)
-                angles.append((ang_connectivity, ang))
+                angles.append(ang)
+                angle_connectivities.append(ang_connectivity)
                 dihedral_connectivity = [i, i - 3, i - 2, i - 1] # dihedral connectivity for molecules > 3 atoms
                 dih = self.dihedral(self, dihedral_connectivity) # get dihedral
-                dihedrals.append((dihedral_connectivity, dih)) # append tuple
-        return bond_lengths, angles, dihedrals
+                dihedrals.append(dih) # append tuple
+                dihedral_connectivities.append(dihedral_connectivity)
+        return InternalCoordinates(bond_lengths,
+                                   bond_connectivities,
+                                   angles,
+                                   angle_connectivities,
+                                   dihedrals,
+                                   dihedral_connectivities)
 
 
 
@@ -485,34 +498,42 @@ class Vibration(Molecule):
 #            raise Exception("Vibrational modes dimensions do not match")
 
 
-    def ret_normal_mode_matrix(self, mass_weight=False) -> npt.NDArray:
-        """
-        A method to calculate and return the pseudo inverse of the square matrix (nfreqs, 3*natom) that
-        defines the collective normal modes. Can be optionally mass weighted.
-        :param mass_weight: flag to mass weight the normal modes
-        :type mass_weight: bool
-        :return: normal mode matrix - rows define the modes and columns the atom coordinates
-        :rtype: numpy.ndarray
-        """
-        nm_mat = np.reshape(self.modes, (self.nfreqs, 3*self.natoms))
-        nm_mat = np.linalg.pinv(nm_mat)
-        if mass_weight:
-            mass_mat = self.__mass_matrix(self.Zs, self.nfreqs, self.natoms)
-            nm_mat = np.dot(mass_mat, nm_mat)
-        return nm_mat
 
-    @staticmethod
-    def __mass_matrix(atomic_masses: list, nfreqs: int, natoms: int) -> npt.NDArray:
-        mw_atom_vec = np.array([a ** 0.5 for a in atomic_masses for i in range(3)])
-        mass_mat = np.eye(nfreqs, natoms * 3) * mw_atom_vec
-        return mass_mat
+class InternalCoordinates:
+    """
+    Class to structure all internal coordinates of a molecule
+
+    Attributes:
+    -----------
+    self.bonds: list
+        list of all bond lengths in angstroms
+    self.bond_connectivity: list
+        list of each present bond lengths atomic connectivity
+    self.angles: list
+        list of all angles in degrees
+    self.angle_connectivity: list
+        list of all present angles atomic connectivity
+    self.dihedrals: list
+        list of all dihedral angles in degrees
+    self.dihedral_connectivity: list
+        list of all present dihedral angles connectivity
+    """
+
+    def __init__(self, bonds, bond_connectivity, angles, angle_connectivity, dihedrals, dihedral_connectivity):
+        self.bonds = bonds
+        self.bond_connectivity = bond_connectivity
+        self.angles = angles
+        self.angle_connectivity = angle_connectivity
+        self.dihedrals = dihedrals
+        self.dihedral_connectivity = dihedral_connectivity
+
 
 
 if __name__ == "__main__":
     fpath = '../data/Molecules/cs2.xyz'
     cs2 = Molecule.init_from_xyz(fpath)
     D = Molecule.distance_matrix(cs2)
-    [bonds, angles, dihedrals] = cs2.calculate_internal_coords()
+    IC = cs2.calculate_internal_coords()
 
     fpath = '../data/Freq/cs2.molden'
     ref_struct = Vibration(fpath)
