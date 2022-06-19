@@ -42,7 +42,8 @@ setup(
 
     install_requires = [
 
-        'numpy ~= 1.20'
+        'numpy ~= 1.20',
+        'scipy ~= 1.8'
 
     ],
 
