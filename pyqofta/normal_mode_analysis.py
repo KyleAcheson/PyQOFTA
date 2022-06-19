@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
-from molecules import Molecule, Vibration
+from pyqofta.molecules import Molecule, Vibration
+from pyqofta.trajectories import Ensemble, Trajectory
 
 
 class VibrationalTypeError(TypeError):
@@ -51,6 +52,7 @@ def normal_mode_transform(molecule, ref_structure, mass_weighted=False) -> npt.N
     :rtype: numpy.ndarray
     """
     if not isinstance(molecule, Molecule):
+        print(type(molecule))
         raise MoleculeTypeError('An instance of Molecule is required for the normal mode transform')
     if not isinstance(ref_structure, Vibration):
         raise VibrationalTypeError('An instance of Vibration is required to project the molecule onto')
@@ -60,7 +62,7 @@ def normal_mode_transform(molecule, ref_structure, mass_weighted=False) -> npt.N
     return normal_mode_coords
 
 
-def nma_analysis(trajectory, time_intervals: list) -> tuple[npt.NDArray, npt.NDArray]:
+def nma_analysis(trajectory, ref_structure, time_intervals: list) -> tuple[npt.NDArray, npt.NDArray]:
     """
     A method for trajectory normal mode analysis. Calculates the average of the normal mode coordinates over
     a number of time intervals specified. Also calculates the standard deviation of these modes within the intervals.
@@ -71,20 +73,31 @@ def nma_analysis(trajectory, time_intervals: list) -> tuple[npt.NDArray, npt.NDA
     :return: average of the normal mode coordinates and the standard deviation over the set of time intervals
     :rtype: numpy.ndarray
     """
-    nvib = np.shape(trajectory.norm_mode_coords)[0]
+    if not isinstance(trajectory, Trajectory):
+        raise TrajectoryTypeError('Normal mode analysis over a trajectory requires an instance of Trajectory')
+    if not isinstance(ref_structure, Vibration):
+        raise VibrationalTypeError('An instance of Vibration containing reference normal modes is required to project the trajectory onto')
+
+    normal_mode_trajectory = Trajectory.broadcast(normal_mode_transform, trajectory, ref_structure)
+    normal_mode_trajectory = np.array(list(normal_mode_trajectory)) # convert from map obj to array of nm coords
+
     ntints = len(time_intervals)
-    interval_std = np.zeros((nvib, ntints))
-    interval_avg = np.zeros((nvib, ntints))
+    interval_std = np.zeros((ntints, ref_structure.nfreqs))
+    interval_avg = np.zeros((ntints, ref_structure.nfreqs))
     for i in range(ntints):
         time_interval = time_intervals[i]
         tstart, tend = time_interval[0], time_interval[1]
         tdiff = tend - tstart
-        nm_coords = trajectory.norm_mode_coords[:, tstart:tend] # select normal mode coords over specified time interval
-        summed_over_tint = np.sum(nm_coords, axis=1)  # coords summed over time interval (used for std calculation)
-        sq_summed_over_tint = np.sum(nm_coords**2, axis=1) # sum of the coords squared over time interval
+        nm_coords = normal_mode_trajectory[tstart:tend, :] # select normal mode coords over specified time interval
+        summed_over_tint = np.sum(nm_coords, axis=0)  # coords summed over time interval (used for std calculation)
+        sq_summed_over_tint = np.sum(nm_coords**2, axis=0) # sum of the coords squared over time interval
         if tdiff != 0: # calculate standard dev. of normal modes over each time interval
             avg_tint = summed_over_tint / tdiff
-            interval_avg[:, i] = avg_tint
+            interval_avg[i, :] = avg_tint
             avg_sq_tint = sq_summed_over_tint / tdiff
-            interval_std[:, i] = (tdiff / (tdiff - 1) * (avg_sq_tint - avg_tint ** 2)) ** .5
+            interval_std[i, :] = (tdiff / (tdiff - 1) * (avg_sq_tint - avg_tint ** 2)) ** .5
     return interval_avg, interval_std
+
+
+def nma_ensemble(ensemble, ref_structure, time_intervals: list):
+    pass

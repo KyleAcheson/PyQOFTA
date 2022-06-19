@@ -19,12 +19,45 @@ __all__ = [
 ]
 
 
+acceptable_traj_type = ['sh', 'mce', 'aimce']
 
+class EnsembleTypeError(TypeError):
+    def __init__(self, msg=f'Trajectory types must be one of: {acceptable_traj_type}', *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
 
 class Ensemble:
 
-    def __init__(self):
-        pass
+    def __init__(self, fpaths: list, traj_type: str):
+        self.trajs = load_ensemble(fpaths, traj_type)
+        self.ntrajs = len(self.trajs)
+        self.weights = [1.0/self.ntrajs for i in range(self.ntrajs)]
+
+    def __iter__(self):
+        return EnsembleIterator(self)
+
+    @staticmethod
+    def load_ensemble(fpaths: list, traj_type: str):
+        traj_type = traj_type.lower()
+        if traj_type not in acceptable_traj_type:
+            raise EnsembleTypeError
+
+        # init lists of trajectory object for the correct dynamics type
+        if traj_type == 'sh':
+            trajs = [TrajectorySH.init_from_xyz(fpath) for fpath in fpaths]
+        elif traj_type == 'mce':
+            #trajs = [TrajectoryMCE.init_from_xyz(fpath) for fpath in fpaths]
+            raise EnsembleTypeError(f'Trajectory type: {traj_type} is not yet implemented.')
+        elif traj_type == 'aimce':
+            #trajs = [TrajectoryAIMCE.init_from_xyz(fpath) for fpath in fpaths]
+            raise EnsembleTypeError(f'Trajectory type: {traj_type} is not yet implemented.')
+
+        return trajs
+
+    @staticmethod
+    def broadcast(func, ensemble, *args):
+        map_obj = map(lambda elem: func(elem, *args), ensemble)
+        return map_obj
+
 
 
 
@@ -66,6 +99,9 @@ class Trajectory:
         self.pops = pops
         self.weight = 1
 
+    def __iter__(self):
+        return TrajectoryIterator(self)
+
     def internal_coordinates(self):
         """
         A method to generate and return all combinations of internal coordinates over all
@@ -90,19 +126,20 @@ class Trajectory:
         dihedral_connectivity = [dih.connectivity for dih in dih_objs]
         return np.array(distances), np.array(angles), np.array(dihedrals)  # init dihedrals as float64 is a waste (if empty)
 
-        @staticmethod
-        def broadcast(func, iterable, *args):
-            """
-            A method that allows for the broadcasting of a function over elements of an iterable.
-            This generalised function may contain additional arguments. This is to allow for the
-            broadcast of molecular level functions over the individual timesteps of a trajectory object.
-            :param func: any function that takes elements of iterable as an argument
-            :param iterable: an iterable defined as a property of the Trajectory class
-            :param args: additional arguments to function
-            :return: a Trajectory property with a function applied to its elements
-            :rtype: map object
-            """
-            return map(lambda elem: func(elem, *args), iterable)
+    @staticmethod
+    def broadcast(func, trajectory, *args):
+        """
+        A method that allows for the broadcasting of a function over elements of an iterable.
+        This generalised function may contain additional arguments. This is to allow for the
+        broadcast of molecular level functions over the individual timesteps of a trajectory object.
+        :param func: any function that takes elements of iterable as an argument
+        :param trajectory: an instance of the Trajectory class
+        :param args: additional arguments to function
+        :return: a Trajectory property with a function applied to its elements
+        :rtype: map object
+        """
+        map_obj  = map(lambda elem: func(elem, *args), trajectory)
+        return map_obj
 
 
 
@@ -192,6 +229,37 @@ class TrajectorySH(Trajectory):
                     coords, labels = [], []
         return geometries, time
 
+
+
+class TrajectoryIterator:
+
+    def __init__(self, trajectory):
+        self._trajectory = trajectory
+        self._index = 0
+
+
+    def __next__(self):
+        if self._index < len(self._trajectory.geometries):
+            result = self._trajectory.geometries[self._index]
+            self._index += 1
+            return result
+        else:
+            raise StopIteration
+
+
+class EnsembleIterator:
+
+    def __init__(self, ensemble):
+        self._ensemble = ensemble
+        self._index = 0
+
+    def __next__(self):
+        if self._index < len(self._ensemble.trajs):
+            result = self._ensemble.trajs[self._index]
+            self._index += 1
+            return result
+        else:
+            raise StopIteration
 
 
 if __name__ == "__main__":
