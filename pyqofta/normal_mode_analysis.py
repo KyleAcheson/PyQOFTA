@@ -4,6 +4,13 @@ from pyqofta.molecules import Molecule, Vibration
 from pyqofta.trajectories import Ensemble, Trajectory
 
 
+__all__ = [
+    'nm_analysis',
+    'nma_ensemble',
+    'nma_traj',
+    'normal_mode_transform'
+]
+
 class VibrationalTypeError(TypeError):
     def __init__(self, msg='Requires a Vibrational object', *args, **kwargs):
         super().__init__(msg, *args, **kwargs)
