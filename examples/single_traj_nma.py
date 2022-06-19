@@ -22,6 +22,5 @@ cs2_traj = trj.TrajectorySH.init_from_xyz(trajectory_path)
 norm_mode_coords = trj.Trajectory.broadcast(nma.normal_mode_transform, cs2_traj, ref_structure) # returns a map object (not allocated to memory yet)
 norm_mode_coords = np.array(list(norm_mode_coords)) # to get as np.array if you need to allocate it
 
-tints = [[0, 1000], [1000, 2000]]
-[avg, std] = nma.nma_analysis(cs2_traj, ref_structure, tints) # higher std = more active
-
+tints = [[0, 1000], [1000, 2001]]
+[avg, std] = nma.nm_analysis(cs2_traj, ref_structure, tints) # higher std = more active

@@ -16,6 +16,11 @@ class TrajectoryTypeError(TypeError):
     def __init__(self, msg='Requires a Trajectory object', *args, **kwargs):
         super().__init__(msg, *args, **kwargs)
 
+class EnsembleTypeError(TypeError):
+    def __init__(self, msg='Requires a Ensemble object', *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+
 
 def normal_mode_matrix(vibrational_structure, mass_weight=False) -> npt.NDArray:
     """
@@ -52,7 +57,6 @@ def normal_mode_transform(molecule, ref_structure, mass_weighted=False) -> npt.N
     :rtype: numpy.ndarray
     """
     if not isinstance(molecule, Molecule):
-        print(type(molecule))
         raise MoleculeTypeError('An instance of Molecule is required for the normal mode transform')
     if not isinstance(ref_structure, Vibration):
         raise VibrationalTypeError('An instance of Vibration is required to project the molecule onto')
@@ -62,7 +66,7 @@ def normal_mode_transform(molecule, ref_structure, mass_weighted=False) -> npt.N
     return normal_mode_coords
 
 
-def nma_analysis(trajectory, ref_structure, time_intervals: list) -> tuple[npt.NDArray, npt.NDArray]:
+def nma_traj(trajectory, ref_structure, time_intervals: list) -> tuple[npt.NDArray, npt.NDArray]:
     """
     A method for trajectory normal mode analysis. Calculates the average of the normal mode coordinates over
     a number of time intervals specified. Also calculates the standard deviation of these modes within the intervals.
@@ -100,4 +104,60 @@ def nma_analysis(trajectory, ref_structure, time_intervals: list) -> tuple[npt.N
 
 
 def nma_ensemble(ensemble, ref_structure, time_intervals: list):
-    pass
+    """
+    A function to perform normal mode analysis on a whole ensemble of trajectories given a reference Vibrational
+    structure to project on. This relies on calculating the normal mode coordinates of the 'average' trajectory
+    and thus only includes coherent motion. The standard deviation on this average gives an idea of how active
+    each normal mode is in the dynamics. Time intervals can be provided to perform analysis over each of these independent
+    intervals in time - useful if there is some periodicity.
+    :param ensemble: an ensemble of trajectories
+    :type ensemble: Ensemble
+    :param ref_structure: a reference structure containing normal mode and freq information
+    :type ref_structure: Vibration
+    :param time_intervals: intervals in time over which to perform analysis
+    :type time_intervals: list (of lists)
+    :return: average normal modes and standard deviation over all time, and the average + std. dev. in each time interval
+    :rtype: numpy.ndarray
+    """
+    if not isinstance(ensemble, Ensemble):
+        raise EnsembleTypeError('Normal mode analysis over a ensemble of trajectories requires an instance of Ensemble')
+    if not isinstance(ref_structure, Vibration):
+        raise VibrationalTypeError('An instance of Vibration containing reference normal modes is required to project the trajectory onto')
+
+    nm_sum, nmsq_sum = np.zeros((ensemble.nts_max, ref_structure.nfreqs)), np.zeros((ensemble.nts_max, ref_structure.nfreqs))
+    time_count = np.zeros(ensemble.nts_max, dtype=np.int64)
+    for tbf in ensemble:
+        nm_tbf = Trajectory.broadcast(normal_mode_transform, tbf, ref_structure)
+        nm_tbf = np.array(list(nm_tbf))
+        nm_sum += nm_tbf
+        nmsq_sum += nm_tbf**2  # TODO: ENSURE WORKS FOR TRAJS WITH DIFFERENT NTS
+        time_count[:tbf.nts] += 1
+
+    ensemble_std, avg_nm = np.zeros((ensemble.nts_max, ref_structure.nfreqs)), np.zeros((ensemble.nts_max, ref_structure.nfreqs))
+    for ts in range(ensemble.nts_max):
+        for v in range(ref_structure.nfreqs):
+            avg_ts = nm_sum[ts, v] / time_count[ts] # normal mode coords of the average traj
+            avg_sq_ts = nmsq_sum[ts, v]/ time_count[ts]
+            ensemble_std[ts, v] = (time_count[ts] / (time_count[ts] - 1) * (avg_sq_ts - avg_ts ** 2)) ** 0.5 # std of norm mode coords wrt avg traj
+            avg_nm[ts, v] = avg_ts # normal mode coords of 'average trajectory'
+
+    # TODO: ADD TIME INTERVAL ANALYSIS
+    return avg_nm, ensemble_std
+
+
+def nm_analysis(obj, ref_structure, time_intervals):
+    """
+    A wrapper for nma_traj and nma_ensemble functions.
+    Will either return ensemble analysis on the average trajectory or individual trajectory based analysis,
+    depending on the type of the input object.
+    See documention for each of these functions for more information.
+    """
+    # TODO: ADD CENTRE OF MASS OPTION
+    if isinstance(obj, Ensemble):
+        [avg_normal_modes, ensemble_std] = nma_ensemble(obj, ref_structure, time_intervals)
+        return avg_normal_modes, ensemble_std
+    elif isinstance(obj, Trajectory):
+        [interval_avg, interval_std] = nma_traj(obj, ref_structure, time_intervals)
+        return interval_avg, interval_std
+    else:
+        raise TypeError('Normal mode analysis can only be conducted on a trajectory or ensemble')

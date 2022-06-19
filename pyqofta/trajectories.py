@@ -28,7 +28,7 @@ class EnsembleTypeError(TypeError):
 class Ensemble:
 
     def __init__(self, fpaths: list, traj_type: str):
-        self.trajs = load_ensemble(fpaths, traj_type)
+        self.trajs, self.nts_max = self.load_ensemble(fpaths, traj_type)
         self.ntrajs = len(self.trajs)
         self.weights = [1.0/self.ntrajs for i in range(self.ntrajs)]
 
@@ -36,27 +36,30 @@ class Ensemble:
         return EnsembleIterator(self)
 
     @staticmethod
-    def load_ensemble(fpaths: list, traj_type: str):
+    def load_ensemble(fpaths: list, traj_type: str) -> tuple[list, int]:
         traj_type = traj_type.lower()
         if traj_type not in acceptable_traj_type:
             raise EnsembleTypeError
 
         # init lists of trajectory object for the correct dynamics type
-        if traj_type == 'sh':
-            trajs = [TrajectorySH.init_from_xyz(fpath) for fpath in fpaths]
-        elif traj_type == 'mce':
-            #trajs = [TrajectoryMCE.init_from_xyz(fpath) for fpath in fpaths]
-            raise EnsembleTypeError(f'Trajectory type: {traj_type} is not yet implemented.')
-        elif traj_type == 'aimce':
-            #trajs = [TrajectoryAIMCE.init_from_xyz(fpath) for fpath in fpaths]
-            raise EnsembleTypeError(f'Trajectory type: {traj_type} is not yet implemented.')
+        max_time, trajs = 0, []
+        for fpath in fpaths:
+            if traj_type == 'sh':
+                traj = TrajectorySH.init_from_xyz(fpath)
+                trajs.append(traj)
+                if traj.nts > max_time: max_time = traj.nts
+            else:
+                raise EnsembleTypeError(f'Trajectory type: {traj_type} is not yet implemented.')
 
-        return trajs
+        return trajs, max_time
 
     @staticmethod
     def broadcast(func, ensemble, *args):
+        #TODO: CONVERT TO AN INSTANCE METHOD
         map_obj = map(lambda elem: func(elem, *args), ensemble)
         return map_obj
+
+    #TODO: DEFINE A GENERALISED FILTER LIKE METHOD
 
 
 
@@ -109,8 +112,7 @@ class Trajectory:
         :return: seperate arrays for distances, angles and dihedral angles
         :rtype: nump.ndarray
         """
-        # THIS IS A BIT JANKY - NEED TO REWRITE AND THNK ABOUT IMPLEMENTATION OF IC
-        # OBJECTS AS CURRENTLY IMPLEMENTED.
+        # TODO: REWRITE IN TERMS OF NEW INTERNAL COORDINATE FRAMEWORK (THIS METHOD WILL NOT WORK ATM)
         distances, angles, dihedrals = [], [], []
         for timestep in self.geometries:
             D = timestep.distance_matrix()
@@ -138,6 +140,7 @@ class Trajectory:
         :return: a Trajectory property with a function applied to its elements
         :rtype: map object
         """
+        #TODO: CONVERT TO AN INSTANCE METHOD
         map_obj  = map(lambda elem: func(elem, *args), trajectory)
         return map_obj
 
@@ -227,6 +230,7 @@ class TrajectorySH(Trajectory):
                     count = 1 # reset to 1 as we are now at natom line
                     geometries.append(mol.Molecule(labels, np.array(coords)))
                     coords, labels = [], []
+            geometries.append(mol.Molecule(labels, np.array(coords))) # quick patch for a bug where reader misses last geom
         return geometries, time
 
 
@@ -263,22 +267,5 @@ class EnsembleIterator:
 
 
 if __name__ == "__main__":
-    # testing molecule class
-    #molecule_path = 'data/Molecules/cs2.xyz'
-    #mol = mol.Molecule.init_from_xyz(molecule_path)
-    #D = mol.distance_matrix()
-    #mol.gen_internal_coords(D)
-    #trajectory_path = 'data/Trajectories/CS2/output.xyz'
-    #trj = TrajectorySH.init_from_xyz(trajectory_path)
-    #[bonds, angles, dihedrals] = trj.internal_coordinates()
-
-    freq_path = 'data/Freq/freq.molden'
-    ref_structure = mol.Vibration(freq_path)
-    #norm_mode_matrix = ref_structure.ret_normal_mode_matrix(mass_weight=True)
-
-    trajectory_path = 'data/Trajectories/CS2/output.xyz'
-    trj = TrajectorySH.init_from_xyz(trajectory_path)
-    trj.norm_mode_transform(ref_structure, mass_weighted=True)
-    [avg, std] = trj.nma_analysis([[0, 2001]])
-
-    print('Testing Done')
+    # some testing stuff
+    print('done')

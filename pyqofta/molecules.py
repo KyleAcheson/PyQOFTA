@@ -347,6 +347,7 @@ class Molecule:
             phi += 360.0
         return phi
 
+    # TODO: ADD COM METHOD TO CENTRE MOLECULE AT COM
 
     def calculate_internal_coords(self):
         """
@@ -530,15 +531,6 @@ class InternalCoordinates:
 
 
 if __name__ == "__main__":
-    fpath = '../data/Molecules/cs2.xyz'
-    cs2 = Molecule.init_from_xyz(fpath)
-    D = Molecule.distance_matrix(cs2)
-    IC = cs2.calculate_internal_coords()
-
-    fpath = '../data/Freq/cs2.molden'
-    ref_struct = Vibration(fpath)
-    nm_mst = ref_struct.ret_normal_mode_matrix(mass_weight=True)
-
-
+    # some testing stuff
     print('done')
 
