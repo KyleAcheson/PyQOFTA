@@ -14,7 +14,9 @@ one day be implemented.
 '''
 
 __all__ = [
-    'IAM_scattering',
+    'IAM_ensemble_scattering',
+    'IAM_trajectory_scattering',
+    'IAM_molecular_scattering',
     'IAM_form_factors'
 ]
 
@@ -26,6 +28,15 @@ class MoleculeTypeError(TypeError):
     def __init__(self, msg='Requires a Molecule object', *args, **kwargs):
         super().__init__(msg, *args, **kwargs)
 
+class TrajectoryTypeError(TypeError):
+    def __init__(self, msg='Requires a Trajectory object', *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+class EnsembleTypeError(TypeError):
+    def __init__(self, msg='Requires a Ensemble object', *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+
 
 IAM_factors_dict = {'H': {'a': [0.493002, 0.322912, 0.140191, 0.040810], 'b': [10.5109, 26.1257, 3.14236, 57.7997], 'c': 0.003038},
                     'C': {'a': [2.26069, 1.56165, 1.05075, 0.839259], 'b': [22.6907, 0.656665, 9.75618, 55.5949], 'c': 0.286977},
@@ -33,23 +44,35 @@ IAM_factors_dict = {'H': {'a': [0.493002, 0.322912, 0.140191, 0.040810], 'b': [1
                     }
 
 
-def IAM_trajectory_scattering(trajectory, qvec, fq, FF, ELEC=FALSE):
+def IAM_ensemble_scattering(ensemble, qvec: npt.NDArray, fq: npt.NDArray, FF: npt.NDArray, ELEC=False) -> list:
+    if not isinstance(ensemble, Ensemble):
+        raise EnsembleTypeError('To calculate scattering over an ensemble an Ensemble object is required')
+    Iens = ensemble.broadcast(IAM_trajectory_scattering, ensemble, qvec, fq, FF, ELEC)
+    return list(Iens)
+
+def IAM_trajectory_scattering(trajectory, qvec, fq, FF, ELEC=False):
+    if not isinstance(trajectory, Trajectory):
+        raise TrajectoryTypeError('To calculate the scattering over time a Trajectory object is required.')
     Itrj = trajectory.broadcast(IAM_molecular_scattering, trajectory, qvec, fq, FF, ELEC)
+    return np.array(list(Itrj))
 
 
-def IAM_molecular_scattering(molecule, qvec, fq, FF, ELEC=FALSE):
+def IAM_molecular_scattering(molecule, qvec, fq, FF, ELEC=False):
     Nq = len(qvec)
     Imol = np.zeros(Nq)
     Iat = sum(fq**2)
     for i in range(molecule.natoms):
         for j in range(i+1, molecule.natoms):
-            qr_ij = qvec * np.linalg.norm(molecule.coordinates[i, :] - molecule.coordinates[i, :])
+            qr_ij = qvec * np.linalg.norm(molecule.coordinates[i, :] - molecule.coordinates[j, :])
             sin_qr_ij = np.sinc(qr_ij)
             Imol += 2 * FF[i, j, :] * sin_qr_ij
     if ELEC:
-        return (qvec * Imol)/Iat # sM (modified scattering used in ued community)
+        Itot = (qvec * Imol)/Iat # sM (modified scattering used in ued community)
+        return Itot
     else:
-        return Imol + Iat # standard xrs
+        Itot = Imol + Iat
+        print(Itot[100], molecule.coordinates[0, 1])
+        return Itot # standard xrs
 
 
 

@@ -106,7 +106,7 @@ class Molecule:
         self._momenta = momenta
 
     def __repr__(self):
-        return f'Molecule({self._atom_labels}, {self.natoms}, {self.nelecs}, {self.Zs}, {self._coordinates.__repr__()}, {self._momenta})'
+        return f"Molecule({self._atom_labels}, {self.natoms}, {self.nelecs}, {self.Zs}, {self._coordinates.__repr__()}, {self._momenta})"
 
 
     @property

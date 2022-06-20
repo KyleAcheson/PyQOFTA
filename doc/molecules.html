@@ -1,0 +1,1691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>pyqofta.molecules API documentation</title>
+<meta name="description" content="Author: Kyle Acheson …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pyqofta.molecules</code></h1>
+</header>
+<section id="section-intro">
+<p>Author: Kyle Acheson</p>
+<p>A module containing Molecule and Vibration</p>
+<p>Objects of type Molecule can be instantiated without an external file, but
+for the instantiation of an object of type Vibration one must provide frequency information
+from an external molden file.</p>
+<p>If an atom required is not parameterised, you may add it to the dictionary: periodic_table.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;
+Author: Kyle Acheson
+
+A module containing Molecule and Vibration
+
+Objects of type Molecule can be instantiated without an external file, but
+for the instantiation of an object of type Vibration one must provide frequency information
+from an external molden file.
+
+If an atom required is not parameterised, you may add it to the dictionary: periodic_table.
+
+&#39;&#39;&#39;
+
+import numpy as np
+import numpy.typing as npt
+from scipy.sparse import csr_matrix, triu, dok_matrix
+
+__all__ = [
+    &#39;Molecule&#39;,
+    &#39;Vibration&#39;,
+    &#39;InternalCoordinates&#39;,
+]
+
+class AngleDefError(ValueError):
+    def __init__(self, msg=&#39;Angles are defined between three atoms&#39;, *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+class DihedralDefError(ValueError):
+    def __init__(self, msg=&#39;Dihedrals are defined between two bond planes (4 atoms)&#39;, *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+class XYZTypeError(TypeError):
+    def __init__(self, msg=&#39;File type must be in .xyz format&#39;, *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+class MoldenTypeError(TypeError):
+    def __init__(self, msg=&#39;File type must be in .molden format&#39;, *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+
+periodic_table = {
+    &#39;H&#39;: {&#39;Z&#39;: 1.008, &#39;nelec&#39;: 1},
+    &#39;C&#39;: {&#39;Z&#39;: 12.011, &#39;nelec&#39;: 6},
+    &#39;N&#39;: {&#39;Z&#39;: 14.007, &#39;nelec&#39;: 7},
+    &#39;O&#39;: {&#39;Z&#39;: 15.999, &#39;nelec&#39;: 8},
+    &#39;S&#39;: {&#39;Z&#39;: 32.06, &#39;nelec&#39;: 16},
+    &#39;Br&#39;: {&#39;Z&#39;: 79.904, &#39;nelec&#39;: 35},
+    &#39;I&#39;: {&#39;Z&#39;: 126.90, &#39;nelec&#39;: 53}
+}
+
+
+class Molecule:
+    &#34;&#34;&#34;
+    Class to represent a molecule
+
+    Attributes
+    ----------
+    atom_labels : list
+        atomic symbols for each atom in molecule
+    coordinates : numpy.ndarray
+        molecule coordinates
+    natoms : list
+        total number of atoms in molecule
+    nelecs : list
+        number of electrons in each individual atom in molecule
+    Zs : list
+        mass of each individual atom in molecule
+    momenta : numpy.ndarray
+        momentum vectors for each atom in molecule
+
+    Methods
+    _______
+
+    Class methods:
+    --------------
+    init_from_xyz(cls, fpath: str)
+    init_from_molden(cls, fpath: str)
+
+    Instance methods:
+    -----------------
+    calculate_internal_coords()
+
+    Static methods:
+    ---------------
+    read_xyz_mol(fname: str)
+    read_molden(fname: str)
+    distance_matrix(Molecule)
+    bond_length(Molecule, bond_connectivity: list)
+    angle(Molecule, angle_connectivity: list)
+    dihedral(Molecule, dihedral_connectivity: list)
+    &#34;&#34;&#34;
+
+    def __init__(self, labels, coordinates, momenta=None):
+        &#34;&#34;&#34;
+        Constructor for Molecule object
+        :param labels: labels of each atom in molecule
+        :type labels: list
+        :param coordinates: molecular coordinates
+        :type coordinates: numpy.ndarray
+        :param momenta: momentum vectors for each atom (optional)
+        :type momenta: numpy.ndarray
+        &#34;&#34;&#34;
+        self._atom_labels = self.__check_atom_labels(labels)
+        self.natoms, self.nelecs, self.Zs = self.__get_atoms_info()
+        self._coordinates = coordinates
+        self._momenta = momenta
+
+    def __repr__(self):
+        return f&#34;Molecule({self._atom_labels}, {self.natoms}, {self.nelecs}, {self.Zs}, {self._coordinates.__repr__()}, {self._momenta})&#34;
+
+
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, coords: npt.NDArray):
+        &#34;&#34;&#34;
+        Coordinate property is allowed to be set incase the instantiated coordinates are transformed.
+        This setter ensures transformed coordinates are of same dimensionality.
+        &#34;&#34;&#34;
+        self.__check_array_coords(self.natoms, coords, &#39;Molecular coordinates&#39;)
+        self._coordinates = coords
+
+    @property
+    def atom_labels(self):
+        return self._atom_labels
+
+    @staticmethod
+    def __check_atom_labels(labels: list):
+        &#34;&#34;&#34;
+        Checks atomic labels are correct type and upper case
+        &#34;&#34;&#34;
+        if len(labels) != len(list(filter(str, labels))):
+            raise Exception(&#34;Atomic labels must be a list of strings for each element&#34;)
+        labels = [label.upper() for label in labels]
+        return labels
+
+    def __get_atoms_info(self) -&gt; tuple[int, list, list]:
+        &#34;&#34;&#34;
+        A private method to get atomic information
+        :return number atoms, number electrons per atom, mass of each atom:
+        :rtype: int, list, list
+        &#34;&#34;&#34;
+        nelec_list, Z_list = [], []
+        natoms = len(self._atom_labels)
+        for atom in self._atom_labels:
+            Z_list.append(periodic_table[atom][&#39;Z&#39;])
+            nelec_list.append(periodic_table[atom][&#39;nelec&#39;])
+        return (natoms, nelec_list, Z_list)
+
+    @property
+    def momenta(self):
+        return self._momenta
+
+    @momenta.setter
+    def momenta(self, momentum_vecs: npt.NDArray):
+        self.__check_array_coords(self.natoms, momentum_vecs, &#39;Momentum&#39;)
+        self._momenta = momentum_vecs
+
+    @staticmethod
+    def __check_array_coords(natoms: int, array: npt.NDArray, property: str):
+        &#34;&#34;&#34;
+        Private method to check that property is defined for all molecular coordinates
+        and has the correct type and dimensionality
+        :param natoms: number of atoms in molecule
+        :type natoms: int
+        :param array: An array that defines a property for some coordinates
+        :type array: numpy.ndarray
+        :param property: Name of the property to check
+        :type property: str
+        &#34;&#34;&#34;
+        if type(array) != np.ndarray:
+            raise Exception(&#34;%s must be specified as a numpy array&#34; % property)
+        dims = np.shape(array)
+        if len(dims) != 2 and dims[1] != 3:
+            raise Exception(&#34;%s must be an array with dimensions (natom, 3)&#34; % property)
+        if dims[0] != natoms:
+            raise Exception(&#34;%s must be defined for %d atoms.&#34; % (property, natoms))
+
+    @classmethod
+    def init_from_xyz(cls, fpath: str):
+        &#34;&#34;&#34;
+        A class method to initialise a Molecule object from an xyz file
+        :param fpath: file path to xyz file
+        :type fpath: str
+        :return: Molecule object
+        :rtype: Molecule
+        &#34;&#34;&#34;
+        atom_names, coords = cls.read_xyz_mol(fpath)
+        return cls(
+            labels=atom_names,
+            coordinates=coords
+        )
+
+    @staticmethod
+    def read_xyz_mol(fname: str) -&gt; tuple[list, npt.NDArray]:
+        &#34;&#34;&#34;
+        A method to read a single set of molecular coordinate from an xyz file
+        :param fname: name of xyz file
+        :type fname: str
+        :return: atomic labels and molecular cartesian coordinates
+        :rtype: list and numpy.ndarray
+        &#34;&#34;&#34;
+        skip_lines = 1
+        ftype = fname.split(&#39;.&#39;)[-1]
+        if ftype != &#39;xyz&#39;:
+            raise XYZTypeError(&#39;Molecule.init_from_xyz() requires a file in .xyz format&#39;)
+        atom_coords, labels = [], []
+        with open(fname, &#39;r&#39;) as f:
+            first_line = f.readline().strip()
+            Nat = int(first_line)
+            for idx, line in enumerate(f):
+                if idx &gt;= skip_lines and idx &lt;= Nat+skip_lines:
+                    atom_list = line.strip().split()
+                    atom_coords.append([float(i) for i in atom_list[1:]])
+                    labels.append(atom_list[0])
+        atom_coords = np.array(atom_coords)
+        return labels, atom_coords
+
+    @classmethod
+    def init_from_molden(cls, fpath: str):
+        &#34;&#34;&#34;
+        A class method to initiate a Molecule type from a molden file
+        :param fpath: path to molden file
+        :type fpath: str
+        :return: Molecule object
+        :rtype: Molecule
+        &#34;&#34;&#34;
+        atom_labels, coords = cls.read_molden(fpath)
+        return cls(
+            labels=atom_labels,
+            coordinates=coords
+        )
+
+    @staticmethod
+    def read_molden(fname: str) -&gt; tuple[list, npt.NDArray]:
+        &#34;&#34;&#34;
+        A method to read ONLY coordinate information from molden files
+        :param fname: name of molden file
+        :type fname: str
+        :return: atomic labels and molecular cartesian coordinates
+        :rtype: list, numpy.ndarray
+        &#34;&#34;&#34;
+        ftype = fname.split(&#39;.&#39;)[-1]
+        if ftype != &#39;molden&#39;:
+            raise MoldenTypeError(&#39;Molecule.init_from_molden() requires a file in .molden format&#39;)
+
+        labels, atoms = [], []
+        mfile = open(fname, &#39;r&#39;)
+        Atoms = False
+        for line in mfile:
+            if &#39;[&#39; in line or &#39;--&#39; in line:
+                Atoms = False
+            if &#39;[Atoms]&#39; in line:
+                Atoms = True
+            elif Atoms:
+                words = line.split()
+                labels += words[0]
+                atom_vec = words[3:6]
+                atoms += [[eval(coords) for coords in atom_vec]]
+
+        atoms = np.array(atoms)
+        return labels, atoms
+
+    @staticmethod
+    def distance_matrix(molecule):
+        &#34;&#34;&#34;
+        Method that computes the distance matrix for a set of coordinates.
+        Only returns upper triangle of matrix as a csr sparse matrix.
+        :param molecule: a molecular structure
+        :type molecule: Molecule
+        :return: distance matrix
+        :rtype: scipy.sparse._csr_csr_matrix
+        &#34;&#34;&#34;
+        dist_mat = dok_matrix((molecule.natoms, molecule.natoms), dtype=np.float64)  # more efficient for building mat
+        for i in range(molecule.natoms):
+            for j in range(i + 1, molecule.natoms):
+                rvec = molecule.coordinates[i, :] - molecule.coordinates[j, :]
+                dist_mat[i, j] = np.linalg.norm(rvec)
+        dist_mat = triu(dist_mat, format=&#39;csr&#39;)  # convert to upper triangle matrix
+        return dist_mat
+
+    @staticmethod
+    def bond_length(molecule, bond_connectivity: list) -&gt; float:
+        &#34;&#34;&#34;
+        Calculate bond length between two atoms
+        :param molecule: a molecule structure
+        :type molecule: Molecule
+        :param bond_connectivity: connectivity of two bonds in coordinate array
+        :type bond_connectivity: list
+        :return: bond length
+        :rtype: numpy.float64
+        &#34;&#34;&#34;
+        rvec = molecule.coordinates[bond_connectivity[0], :] - molecule.coordinates[bond_connectivity[1], :]
+        return np.linalg.norm(rvec)
+
+    @staticmethod
+    def angle(molecule, angle_connectivity: list) -&gt; float:
+        &#34;&#34;&#34;
+        Caclulates angle between two bond lengths r_ij and r_kj where atom j is central
+        :param molecule: a molecule structure
+        :type molecule: Molecule
+        :param angle_connectivity: Connectivity of atoms (i, j, k) that form an angle
+        :type angle_connectivity: list
+        :return: angle between atoms r_ij and r_kj in degrees
+        :rtype: float
+        &#34;&#34;&#34;
+        if len(angle_connectivity) != 3 or molecule.natoms &lt; 3:
+            raise AngleDefError
+        i, j, k = angle_connectivity
+        r_ij = molecule.coordinates[i, :] - molecule.coordinates[j, :]
+        r_kj = molecule.coordinates[k, :] - molecule.coordinates[j, :]
+        cosine_theta = np.dot(r_ij, r_kj)
+        sin_theta = np.linalg.norm(np.cross(r_ij, r_kj))
+        theta = np.arctan2(sin_theta, cosine_theta)
+        theta = 180.0 * theta / np.pi
+        return theta
+
+    @staticmethod
+    def dihedral(molecule, dihedral_connectivity: list) -&gt; float:
+        &#34;&#34;&#34;
+        Method to calculate a dihedral angle between two bond lengths that form a plane
+        :param molecule: a molecular structure
+        :type molecule: Molecule
+        :param dihedral_connectivity: Connectivity of atoms that form a dihedral angle (i, j, k, l)
+        :type dihedral_connectivity: list
+        :return: dihedral angle (phi) in degrees
+        :rtype: float
+        &#34;&#34;&#34;
+        if len(dihedral_connectivity) != 4 or molecule.natoms &lt; 4:
+            raise DihedralDefError
+        i, j, k, l = dihedral_connectivity
+        r_ji = molecule.coordinates[j, :] - molecule.coordinates[i, :]
+        r_kj = molecule.coordinates[k, :] - molecule.coordinates[j, :]
+        r_lk = molecule.coordinates[l, :] - molecule.coordinates[k, :]
+        v1 = np.cross(r_ji, r_kj)
+        v1 /= np.linalg.norm(v1)
+        v2 = np.cross(r_lk, r_kj)
+        v2 /= np.linalg.norm(v2)
+        p1 = np.cross(v1, r_kj) / np.linalg.norm(r_kj)
+        a = np.dot(v1, v2)
+        b = np.dot(p1, v2)
+        phi = np.arctan2(b, a)
+        phi = -180.0 - 180.0 * phi / np.pi
+        if phi &lt; -180.0:
+            phi += 360.0
+        return phi
+
+    # TODO: ADD COM METHOD TO CENTRE MOLECULE AT COM
+
+    def calculate_internal_coords(self):
+        &#34;&#34;&#34;
+        A method that calculates all possible internal coordinates
+        (bond distances, angles, and dihedrals) as well as their connectivity.
+        :return: Internal coordinates object containing bonds, angles and dihedrals + their connectivities
+        :rtype: InternalCoordinates
+        &#34;&#34;&#34;
+        bond_lengths, angles, dihedrals = [], [], []
+        bond_connectivities, angle_connectivities, dihedral_connectivities = [], [], []
+        if self.natoms &gt; 1: # only one bond length
+            bond_connectivity = [0, 1] # first bond connecitivty = atom 0 and 1
+            r = self.bond_length(self, bond_connectivity) # get bond length for given atoms
+            bond_lengths.append(r) # append tuple of connecitvity and bond length
+            bond_connectivities.append(bond_connectivity)
+        if self.natoms &gt; 2: # two bond lengths and one angle
+            bond_connectivity = [0, 2]
+            r = self.bond_length(self, bond_connectivity)
+            bond_lengths.append(r)
+            bond_connectivities.append(bond_connectivity)
+            ang_connectivity = [2, 0, 1] # first angle is centred on atom 0 and between bonds r_01 and r_02
+            ang = self.angle(self, ang_connectivity) # get angle for given atoms
+            angles.append(ang) # append tuple
+            angle_connectivities.append(ang_connectivity)
+        if self.natoms &gt; 3: # n-1 bond lengths, n-2 angles and n-3 dihedrals
+            for i in range(3, self.natoms):
+                bond_connectivity = [i - 3, 1]
+                r = self.bond_length(self, bond_connectivity)
+                bond_lengths.append(r)
+                bond_connectivities.append(bond_connectivity)
+                ang_connectivity = [i, i - 3, i - 2]
+                ang = self.angle(self, ang_connectivity)
+                angles.append(ang)
+                angle_connectivities.append(ang_connectivity)
+                dihedral_connectivity = [i, i - 3, i - 2, i - 1] # dihedral connectivity for molecules &gt; 3 atoms
+                dih = self.dihedral(self, dihedral_connectivity) # get dihedral
+                dihedrals.append(dih) # append tuple
+                dihedral_connectivities.append(dihedral_connectivity)
+        return InternalCoordinates(bond_lengths,
+                                   bond_connectivities,
+                                   angles,
+                                   angle_connectivities,
+                                   dihedrals,
+                                   dihedral_connectivities)
+
+
+
+class Vibration(Molecule):
+    &#34;&#34;&#34;
+    Class to represent vibrational modes of a molecule structure - subclass of Molecule
+
+    Attributes
+    ----------
+    self.freqs : list
+        vibrational frequencies for each of the 3N modes (in cm^-1)
+    self.nfreqs : int
+        Number of vibrational frequencies
+    self.modes : nump.ndarray
+        vectors of each of the normal mode frequencies
+
+    + All attributes inherited from Molecule class
+
+    Methods
+    _______
+
+    Static Methods
+    --------------
+    read_molden(fname: str)
+    &#34;&#34;&#34;
+
+    def __init__(self, fpath: str):
+        &#34;&#34;&#34;
+        Constructor for Vibration object - loads vibrational information from molden format
+        :param fpath: path to molden file
+        :type fpath: str
+        &#34;&#34;&#34;
+        # init via molden reader - returns atoms, labels and freqs - init Molecule type and additional Vib instances
+        molden_out = self.read_molden(fpath)
+        Molecule.__init__(self, molden_out[0], molden_out[1])
+        self.freqs = molden_out[2]
+        self.nfreqs = len(self.freqs)
+        self.modes = molden_out[3]
+
+    def __repr__(self):
+        return f&#39;Vibration({self._atom_labels}, {self._coordinates}, {self.freqs})&#39;
+
+    @staticmethod
+    def read_molden(fname: str) -&gt; tuple[list, npt.NDArray, npt.NDArray, npt.NDArray]:
+        &#34;&#34;&#34;
+        A method reads vibrational information from molden files - overrides  method in Molecule parent class
+        :param fname: name of molden file to load coordinate and frequency information from
+        :type fname: str
+        :return: atomic labels, cartesian coordinates, frequencies (cm^-1) and normal mode coordinates
+        :rtype: tuple
+        &#34;&#34;&#34;
+        ftype = fname.split(&#39;.&#39;)[-1]
+        if ftype != &#39;molden&#39;:
+            raise MoldenTypeError(&#39;Vibration object must be instantiated from a .molden type file&#39;)
+
+        labels, atoms, freqs, vibs = [], [], [], []
+
+        mfile = open(fname, &#39;r&#39;)
+        Atoms = False
+        FREQ = False
+        FRNORMCOORD = False
+
+        actvib = -1
+        for line in mfile:
+            # what section are we in
+            if &#39;[&#39; in line or &#39;--&#39; in line:
+                Atoms = False
+                FREQ = False
+                FRNORMCOORD = False
+
+            if &#39;[Atoms]&#39; in line:
+                Atoms = True
+            elif &#39;[FREQ]&#39; in line:
+                FREQ = True
+            elif &#39;[FR-NORM-COORD]&#39; in line:
+                FRNORMCOORD = True
+                # extract the information in that section
+            elif Atoms:
+                words = line.split()
+                labels += words[0]
+                atom_vec = words[3:6]
+                atoms += [[eval(coords) for coords in atom_vec]]
+            elif FREQ:
+                freqs += [eval(line)]
+            elif FRNORMCOORD:
+                if &#39;vibration&#39; in line or &#39;Vibration&#39; in line:
+                    vib_list = []
+                    actvib += 1
+                    if actvib &gt; -1:
+                        vibs += [vib_list]
+                else:
+                    vib_list += [[eval(coor) for coor in line.split()]]
+
+        freqs = np.array(freqs)
+        vibs = np.array(vibs)
+        atoms = np.array(atoms)
+        return (labels, atoms, freqs, vibs)
+
+#    def __check_freqs(self, freqs, vibs):
+#        nfreq = len(freqs)
+#        if nfreq != (3* self.natoms) and np.count_nonzero(freqs) != (3*self.natoms-5 or 3*self.natoms-6):
+#            raise Exception(&#34;Must have 3*natom frequencies and 3*natom-5/6 normal modes&#34;)
+#        dims = np.shape(vibs)
+#        if dims != (nfreq, self.natoms, 3):
+#            raise Exception(&#34;Vibrational modes dimensions do not match&#34;)
+
+
+
+class InternalCoordinates:
+    &#34;&#34;&#34;
+    Class to structure all internal coordinates of a molecule
+
+    Attributes:
+    -----------
+    self.bonds: list
+        list of all bond lengths in angstroms
+    self.bond_connectivity: list
+        list of each present bond lengths atomic connectivity
+    self.angles: list
+        list of all angles in degrees
+    self.angle_connectivity: list
+        list of all present angles atomic connectivity
+    self.dihedrals: list
+        list of all dihedral angles in degrees
+    self.dihedral_connectivity: list
+        list of all present dihedral angles connectivity
+    &#34;&#34;&#34;
+
+    def __init__(self, bonds, bond_connectivity, angles, angle_connectivity, dihedrals, dihedral_connectivity):
+        self.bonds = bonds
+        self.bond_connectivity = bond_connectivity
+        self.angles = angles
+        self.angle_connectivity = angle_connectivity
+        self.dihedrals = dihedrals
+        self.dihedral_connectivity = dihedral_connectivity
+
+
+
+if __name__ == &#34;__main__&#34;:
+    # some testing stuff
+    print(&#39;done&#39;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pyqofta.molecules.InternalCoordinates"><code class="flex name class">
+<span>class <span class="ident">InternalCoordinates</span></span>
+<span>(</span><span>bonds, bond_connectivity, angles, angle_connectivity, dihedrals, dihedral_connectivity)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Class to structure all internal coordinates of a molecule</p>
+<h2 id="attributes">Attributes:</h2>
+<p>self.bonds: list
+list of all bond lengths in angstroms
+self.bond_connectivity: list
+list of each present bond lengths atomic connectivity
+self.angles: list
+list of all angles in degrees
+self.angle_connectivity: list
+list of all present angles atomic connectivity
+self.dihedrals: list
+list of all dihedral angles in degrees
+self.dihedral_connectivity: list
+list of all present dihedral angles connectivity</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InternalCoordinates:
+    &#34;&#34;&#34;
+    Class to structure all internal coordinates of a molecule
+
+    Attributes:
+    -----------
+    self.bonds: list
+        list of all bond lengths in angstroms
+    self.bond_connectivity: list
+        list of each present bond lengths atomic connectivity
+    self.angles: list
+        list of all angles in degrees
+    self.angle_connectivity: list
+        list of all present angles atomic connectivity
+    self.dihedrals: list
+        list of all dihedral angles in degrees
+    self.dihedral_connectivity: list
+        list of all present dihedral angles connectivity
+    &#34;&#34;&#34;
+
+    def __init__(self, bonds, bond_connectivity, angles, angle_connectivity, dihedrals, dihedral_connectivity):
+        self.bonds = bonds
+        self.bond_connectivity = bond_connectivity
+        self.angles = angles
+        self.angle_connectivity = angle_connectivity
+        self.dihedrals = dihedrals
+        self.dihedral_connectivity = dihedral_connectivity</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule"><code class="flex name class">
+<span>class <span class="ident">Molecule</span></span>
+<span>(</span><span>labels, coordinates, momenta=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Class to represent a molecule</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>atom_labels</code></strong> :&ensp;<code>list</code></dt>
+<dd>atomic symbols for each atom in molecule</dd>
+<dt><strong><code>coordinates</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>molecule coordinates</dd>
+<dt><strong><code>natoms</code></strong> :&ensp;<code>list</code></dt>
+<dd>total number of atoms in molecule</dd>
+<dt><strong><code>nelecs</code></strong> :&ensp;<code>list</code></dt>
+<dd>number of electrons in each individual atom in molecule</dd>
+<dt><strong><code>Zs</code></strong> :&ensp;<code>list</code></dt>
+<dd>mass of each individual atom in molecule</dd>
+<dt><strong><code>momenta</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>momentum vectors for each atom in molecule</dd>
+<dt><strong><code>Methods</code></strong></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>_______</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="class-methods">Class methods:</h2>
+<p>init_from_xyz(cls, fpath: str)
+init_from_molden(cls, fpath: str)</p>
+<h2 id="instance-methods">Instance methods:</h2>
+<p>calculate_internal_coords()</p>
+<h2 id="static-methods">Static methods:</h2>
+<p>read_xyz_mol(fname: str)
+read_molden(fname: str)
+distance_matrix(Molecule)
+bond_length(Molecule, bond_connectivity: list)
+angle(Molecule, angle_connectivity: list)
+dihedral(Molecule, dihedral_connectivity: list)</p>
+<p>Constructor for Molecule object
+:param labels: labels of each atom in molecule
+:type labels: list
+:param coordinates: molecular coordinates
+:type coordinates: numpy.ndarray
+:param momenta: momentum vectors for each atom (optional)
+:type momenta: numpy.ndarray</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Molecule:
+    &#34;&#34;&#34;
+    Class to represent a molecule
+
+    Attributes
+    ----------
+    atom_labels : list
+        atomic symbols for each atom in molecule
+    coordinates : numpy.ndarray
+        molecule coordinates
+    natoms : list
+        total number of atoms in molecule
+    nelecs : list
+        number of electrons in each individual atom in molecule
+    Zs : list
+        mass of each individual atom in molecule
+    momenta : numpy.ndarray
+        momentum vectors for each atom in molecule
+
+    Methods
+    _______
+
+    Class methods:
+    --------------
+    init_from_xyz(cls, fpath: str)
+    init_from_molden(cls, fpath: str)
+
+    Instance methods:
+    -----------------
+    calculate_internal_coords()
+
+    Static methods:
+    ---------------
+    read_xyz_mol(fname: str)
+    read_molden(fname: str)
+    distance_matrix(Molecule)
+    bond_length(Molecule, bond_connectivity: list)
+    angle(Molecule, angle_connectivity: list)
+    dihedral(Molecule, dihedral_connectivity: list)
+    &#34;&#34;&#34;
+
+    def __init__(self, labels, coordinates, momenta=None):
+        &#34;&#34;&#34;
+        Constructor for Molecule object
+        :param labels: labels of each atom in molecule
+        :type labels: list
+        :param coordinates: molecular coordinates
+        :type coordinates: numpy.ndarray
+        :param momenta: momentum vectors for each atom (optional)
+        :type momenta: numpy.ndarray
+        &#34;&#34;&#34;
+        self._atom_labels = self.__check_atom_labels(labels)
+        self.natoms, self.nelecs, self.Zs = self.__get_atoms_info()
+        self._coordinates = coordinates
+        self._momenta = momenta
+
+    def __repr__(self):
+        return f&#34;Molecule({self._atom_labels}, {self.natoms}, {self.nelecs}, {self.Zs}, {self._coordinates.__repr__()}, {self._momenta})&#34;
+
+
+    @property
+    def coordinates(self):
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, coords: npt.NDArray):
+        &#34;&#34;&#34;
+        Coordinate property is allowed to be set incase the instantiated coordinates are transformed.
+        This setter ensures transformed coordinates are of same dimensionality.
+        &#34;&#34;&#34;
+        self.__check_array_coords(self.natoms, coords, &#39;Molecular coordinates&#39;)
+        self._coordinates = coords
+
+    @property
+    def atom_labels(self):
+        return self._atom_labels
+
+    @staticmethod
+    def __check_atom_labels(labels: list):
+        &#34;&#34;&#34;
+        Checks atomic labels are correct type and upper case
+        &#34;&#34;&#34;
+        if len(labels) != len(list(filter(str, labels))):
+            raise Exception(&#34;Atomic labels must be a list of strings for each element&#34;)
+        labels = [label.upper() for label in labels]
+        return labels
+
+    def __get_atoms_info(self) -&gt; tuple[int, list, list]:
+        &#34;&#34;&#34;
+        A private method to get atomic information
+        :return number atoms, number electrons per atom, mass of each atom:
+        :rtype: int, list, list
+        &#34;&#34;&#34;
+        nelec_list, Z_list = [], []
+        natoms = len(self._atom_labels)
+        for atom in self._atom_labels:
+            Z_list.append(periodic_table[atom][&#39;Z&#39;])
+            nelec_list.append(periodic_table[atom][&#39;nelec&#39;])
+        return (natoms, nelec_list, Z_list)
+
+    @property
+    def momenta(self):
+        return self._momenta
+
+    @momenta.setter
+    def momenta(self, momentum_vecs: npt.NDArray):
+        self.__check_array_coords(self.natoms, momentum_vecs, &#39;Momentum&#39;)
+        self._momenta = momentum_vecs
+
+    @staticmethod
+    def __check_array_coords(natoms: int, array: npt.NDArray, property: str):
+        &#34;&#34;&#34;
+        Private method to check that property is defined for all molecular coordinates
+        and has the correct type and dimensionality
+        :param natoms: number of atoms in molecule
+        :type natoms: int
+        :param array: An array that defines a property for some coordinates
+        :type array: numpy.ndarray
+        :param property: Name of the property to check
+        :type property: str
+        &#34;&#34;&#34;
+        if type(array) != np.ndarray:
+            raise Exception(&#34;%s must be specified as a numpy array&#34; % property)
+        dims = np.shape(array)
+        if len(dims) != 2 and dims[1] != 3:
+            raise Exception(&#34;%s must be an array with dimensions (natom, 3)&#34; % property)
+        if dims[0] != natoms:
+            raise Exception(&#34;%s must be defined for %d atoms.&#34; % (property, natoms))
+
+    @classmethod
+    def init_from_xyz(cls, fpath: str):
+        &#34;&#34;&#34;
+        A class method to initialise a Molecule object from an xyz file
+        :param fpath: file path to xyz file
+        :type fpath: str
+        :return: Molecule object
+        :rtype: Molecule
+        &#34;&#34;&#34;
+        atom_names, coords = cls.read_xyz_mol(fpath)
+        return cls(
+            labels=atom_names,
+            coordinates=coords
+        )
+
+    @staticmethod
+    def read_xyz_mol(fname: str) -&gt; tuple[list, npt.NDArray]:
+        &#34;&#34;&#34;
+        A method to read a single set of molecular coordinate from an xyz file
+        :param fname: name of xyz file
+        :type fname: str
+        :return: atomic labels and molecular cartesian coordinates
+        :rtype: list and numpy.ndarray
+        &#34;&#34;&#34;
+        skip_lines = 1
+        ftype = fname.split(&#39;.&#39;)[-1]
+        if ftype != &#39;xyz&#39;:
+            raise XYZTypeError(&#39;Molecule.init_from_xyz() requires a file in .xyz format&#39;)
+        atom_coords, labels = [], []
+        with open(fname, &#39;r&#39;) as f:
+            first_line = f.readline().strip()
+            Nat = int(first_line)
+            for idx, line in enumerate(f):
+                if idx &gt;= skip_lines and idx &lt;= Nat+skip_lines:
+                    atom_list = line.strip().split()
+                    atom_coords.append([float(i) for i in atom_list[1:]])
+                    labels.append(atom_list[0])
+        atom_coords = np.array(atom_coords)
+        return labels, atom_coords
+
+    @classmethod
+    def init_from_molden(cls, fpath: str):
+        &#34;&#34;&#34;
+        A class method to initiate a Molecule type from a molden file
+        :param fpath: path to molden file
+        :type fpath: str
+        :return: Molecule object
+        :rtype: Molecule
+        &#34;&#34;&#34;
+        atom_labels, coords = cls.read_molden(fpath)
+        return cls(
+            labels=atom_labels,
+            coordinates=coords
+        )
+
+    @staticmethod
+    def read_molden(fname: str) -&gt; tuple[list, npt.NDArray]:
+        &#34;&#34;&#34;
+        A method to read ONLY coordinate information from molden files
+        :param fname: name of molden file
+        :type fname: str
+        :return: atomic labels and molecular cartesian coordinates
+        :rtype: list, numpy.ndarray
+        &#34;&#34;&#34;
+        ftype = fname.split(&#39;.&#39;)[-1]
+        if ftype != &#39;molden&#39;:
+            raise MoldenTypeError(&#39;Molecule.init_from_molden() requires a file in .molden format&#39;)
+
+        labels, atoms = [], []
+        mfile = open(fname, &#39;r&#39;)
+        Atoms = False
+        for line in mfile:
+            if &#39;[&#39; in line or &#39;--&#39; in line:
+                Atoms = False
+            if &#39;[Atoms]&#39; in line:
+                Atoms = True
+            elif Atoms:
+                words = line.split()
+                labels += words[0]
+                atom_vec = words[3:6]
+                atoms += [[eval(coords) for coords in atom_vec]]
+
+        atoms = np.array(atoms)
+        return labels, atoms
+
+    @staticmethod
+    def distance_matrix(molecule):
+        &#34;&#34;&#34;
+        Method that computes the distance matrix for a set of coordinates.
+        Only returns upper triangle of matrix as a csr sparse matrix.
+        :param molecule: a molecular structure
+        :type molecule: Molecule
+        :return: distance matrix
+        :rtype: scipy.sparse._csr_csr_matrix
+        &#34;&#34;&#34;
+        dist_mat = dok_matrix((molecule.natoms, molecule.natoms), dtype=np.float64)  # more efficient for building mat
+        for i in range(molecule.natoms):
+            for j in range(i + 1, molecule.natoms):
+                rvec = molecule.coordinates[i, :] - molecule.coordinates[j, :]
+                dist_mat[i, j] = np.linalg.norm(rvec)
+        dist_mat = triu(dist_mat, format=&#39;csr&#39;)  # convert to upper triangle matrix
+        return dist_mat
+
+    @staticmethod
+    def bond_length(molecule, bond_connectivity: list) -&gt; float:
+        &#34;&#34;&#34;
+        Calculate bond length between two atoms
+        :param molecule: a molecule structure
+        :type molecule: Molecule
+        :param bond_connectivity: connectivity of two bonds in coordinate array
+        :type bond_connectivity: list
+        :return: bond length
+        :rtype: numpy.float64
+        &#34;&#34;&#34;
+        rvec = molecule.coordinates[bond_connectivity[0], :] - molecule.coordinates[bond_connectivity[1], :]
+        return np.linalg.norm(rvec)
+
+    @staticmethod
+    def angle(molecule, angle_connectivity: list) -&gt; float:
+        &#34;&#34;&#34;
+        Caclulates angle between two bond lengths r_ij and r_kj where atom j is central
+        :param molecule: a molecule structure
+        :type molecule: Molecule
+        :param angle_connectivity: Connectivity of atoms (i, j, k) that form an angle
+        :type angle_connectivity: list
+        :return: angle between atoms r_ij and r_kj in degrees
+        :rtype: float
+        &#34;&#34;&#34;
+        if len(angle_connectivity) != 3 or molecule.natoms &lt; 3:
+            raise AngleDefError
+        i, j, k = angle_connectivity
+        r_ij = molecule.coordinates[i, :] - molecule.coordinates[j, :]
+        r_kj = molecule.coordinates[k, :] - molecule.coordinates[j, :]
+        cosine_theta = np.dot(r_ij, r_kj)
+        sin_theta = np.linalg.norm(np.cross(r_ij, r_kj))
+        theta = np.arctan2(sin_theta, cosine_theta)
+        theta = 180.0 * theta / np.pi
+        return theta
+
+    @staticmethod
+    def dihedral(molecule, dihedral_connectivity: list) -&gt; float:
+        &#34;&#34;&#34;
+        Method to calculate a dihedral angle between two bond lengths that form a plane
+        :param molecule: a molecular structure
+        :type molecule: Molecule
+        :param dihedral_connectivity: Connectivity of atoms that form a dihedral angle (i, j, k, l)
+        :type dihedral_connectivity: list
+        :return: dihedral angle (phi) in degrees
+        :rtype: float
+        &#34;&#34;&#34;
+        if len(dihedral_connectivity) != 4 or molecule.natoms &lt; 4:
+            raise DihedralDefError
+        i, j, k, l = dihedral_connectivity
+        r_ji = molecule.coordinates[j, :] - molecule.coordinates[i, :]
+        r_kj = molecule.coordinates[k, :] - molecule.coordinates[j, :]
+        r_lk = molecule.coordinates[l, :] - molecule.coordinates[k, :]
+        v1 = np.cross(r_ji, r_kj)
+        v1 /= np.linalg.norm(v1)
+        v2 = np.cross(r_lk, r_kj)
+        v2 /= np.linalg.norm(v2)
+        p1 = np.cross(v1, r_kj) / np.linalg.norm(r_kj)
+        a = np.dot(v1, v2)
+        b = np.dot(p1, v2)
+        phi = np.arctan2(b, a)
+        phi = -180.0 - 180.0 * phi / np.pi
+        if phi &lt; -180.0:
+            phi += 360.0
+        return phi
+
+    # TODO: ADD COM METHOD TO CENTRE MOLECULE AT COM
+
+    def calculate_internal_coords(self):
+        &#34;&#34;&#34;
+        A method that calculates all possible internal coordinates
+        (bond distances, angles, and dihedrals) as well as their connectivity.
+        :return: Internal coordinates object containing bonds, angles and dihedrals + their connectivities
+        :rtype: InternalCoordinates
+        &#34;&#34;&#34;
+        bond_lengths, angles, dihedrals = [], [], []
+        bond_connectivities, angle_connectivities, dihedral_connectivities = [], [], []
+        if self.natoms &gt; 1: # only one bond length
+            bond_connectivity = [0, 1] # first bond connecitivty = atom 0 and 1
+            r = self.bond_length(self, bond_connectivity) # get bond length for given atoms
+            bond_lengths.append(r) # append tuple of connecitvity and bond length
+            bond_connectivities.append(bond_connectivity)
+        if self.natoms &gt; 2: # two bond lengths and one angle
+            bond_connectivity = [0, 2]
+            r = self.bond_length(self, bond_connectivity)
+            bond_lengths.append(r)
+            bond_connectivities.append(bond_connectivity)
+            ang_connectivity = [2, 0, 1] # first angle is centred on atom 0 and between bonds r_01 and r_02
+            ang = self.angle(self, ang_connectivity) # get angle for given atoms
+            angles.append(ang) # append tuple
+            angle_connectivities.append(ang_connectivity)
+        if self.natoms &gt; 3: # n-1 bond lengths, n-2 angles and n-3 dihedrals
+            for i in range(3, self.natoms):
+                bond_connectivity = [i - 3, 1]
+                r = self.bond_length(self, bond_connectivity)
+                bond_lengths.append(r)
+                bond_connectivities.append(bond_connectivity)
+                ang_connectivity = [i, i - 3, i - 2]
+                ang = self.angle(self, ang_connectivity)
+                angles.append(ang)
+                angle_connectivities.append(ang_connectivity)
+                dihedral_connectivity = [i, i - 3, i - 2, i - 1] # dihedral connectivity for molecules &gt; 3 atoms
+                dih = self.dihedral(self, dihedral_connectivity) # get dihedral
+                dihedrals.append(dih) # append tuple
+                dihedral_connectivities.append(dihedral_connectivity)
+        return InternalCoordinates(bond_lengths,
+                                   bond_connectivities,
+                                   angles,
+                                   angle_connectivities,
+                                   dihedrals,
+                                   dihedral_connectivities)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="pyqofta.molecules.Vibration" href="#pyqofta.molecules.Vibration">Vibration</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="pyqofta.molecules.Molecule.angle"><code class="name flex">
+<span>def <span class="ident">angle</span></span>(<span>molecule, angle_connectivity: list) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Caclulates angle between two bond lengths r_ij and r_kj where atom j is central
+:param molecule: a molecule structure
+:type molecule: Molecule
+:param angle_connectivity: Connectivity of atoms (i, j, k) that form an angle
+:type angle_connectivity: list
+:return: angle between atoms r_ij and r_kj in degrees
+:rtype: float</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def angle(molecule, angle_connectivity: list) -&gt; float:
+    &#34;&#34;&#34;
+    Caclulates angle between two bond lengths r_ij and r_kj where atom j is central
+    :param molecule: a molecule structure
+    :type molecule: Molecule
+    :param angle_connectivity: Connectivity of atoms (i, j, k) that form an angle
+    :type angle_connectivity: list
+    :return: angle between atoms r_ij and r_kj in degrees
+    :rtype: float
+    &#34;&#34;&#34;
+    if len(angle_connectivity) != 3 or molecule.natoms &lt; 3:
+        raise AngleDefError
+    i, j, k = angle_connectivity
+    r_ij = molecule.coordinates[i, :] - molecule.coordinates[j, :]
+    r_kj = molecule.coordinates[k, :] - molecule.coordinates[j, :]
+    cosine_theta = np.dot(r_ij, r_kj)
+    sin_theta = np.linalg.norm(np.cross(r_ij, r_kj))
+    theta = np.arctan2(sin_theta, cosine_theta)
+    theta = 180.0 * theta / np.pi
+    return theta</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule.bond_length"><code class="name flex">
+<span>def <span class="ident">bond_length</span></span>(<span>molecule, bond_connectivity: list) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate bond length between two atoms
+:param molecule: a molecule structure
+:type molecule: Molecule
+:param bond_connectivity: connectivity of two bonds in coordinate array
+:type bond_connectivity: list
+:return: bond length
+:rtype: numpy.float64</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def bond_length(molecule, bond_connectivity: list) -&gt; float:
+    &#34;&#34;&#34;
+    Calculate bond length between two atoms
+    :param molecule: a molecule structure
+    :type molecule: Molecule
+    :param bond_connectivity: connectivity of two bonds in coordinate array
+    :type bond_connectivity: list
+    :return: bond length
+    :rtype: numpy.float64
+    &#34;&#34;&#34;
+    rvec = molecule.coordinates[bond_connectivity[0], :] - molecule.coordinates[bond_connectivity[1], :]
+    return np.linalg.norm(rvec)</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule.dihedral"><code class="name flex">
+<span>def <span class="ident">dihedral</span></span>(<span>molecule, dihedral_connectivity: list) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to calculate a dihedral angle between two bond lengths that form a plane
+:param molecule: a molecular structure
+:type molecule: Molecule
+:param dihedral_connectivity: Connectivity of atoms that form a dihedral angle (i, j, k, l)
+:type dihedral_connectivity: list
+:return: dihedral angle (phi) in degrees
+:rtype: float</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def dihedral(molecule, dihedral_connectivity: list) -&gt; float:
+    &#34;&#34;&#34;
+    Method to calculate a dihedral angle between two bond lengths that form a plane
+    :param molecule: a molecular structure
+    :type molecule: Molecule
+    :param dihedral_connectivity: Connectivity of atoms that form a dihedral angle (i, j, k, l)
+    :type dihedral_connectivity: list
+    :return: dihedral angle (phi) in degrees
+    :rtype: float
+    &#34;&#34;&#34;
+    if len(dihedral_connectivity) != 4 or molecule.natoms &lt; 4:
+        raise DihedralDefError
+    i, j, k, l = dihedral_connectivity
+    r_ji = molecule.coordinates[j, :] - molecule.coordinates[i, :]
+    r_kj = molecule.coordinates[k, :] - molecule.coordinates[j, :]
+    r_lk = molecule.coordinates[l, :] - molecule.coordinates[k, :]
+    v1 = np.cross(r_ji, r_kj)
+    v1 /= np.linalg.norm(v1)
+    v2 = np.cross(r_lk, r_kj)
+    v2 /= np.linalg.norm(v2)
+    p1 = np.cross(v1, r_kj) / np.linalg.norm(r_kj)
+    a = np.dot(v1, v2)
+    b = np.dot(p1, v2)
+    phi = np.arctan2(b, a)
+    phi = -180.0 - 180.0 * phi / np.pi
+    if phi &lt; -180.0:
+        phi += 360.0
+    return phi</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule.distance_matrix"><code class="name flex">
+<span>def <span class="ident">distance_matrix</span></span>(<span>molecule)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method that computes the distance matrix for a set of coordinates.
+Only returns upper triangle of matrix as a csr sparse matrix.
+:param molecule: a molecular structure
+:type molecule: Molecule
+:return: distance matrix
+:rtype: scipy.sparse._csr_csr_matrix</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def distance_matrix(molecule):
+    &#34;&#34;&#34;
+    Method that computes the distance matrix for a set of coordinates.
+    Only returns upper triangle of matrix as a csr sparse matrix.
+    :param molecule: a molecular structure
+    :type molecule: Molecule
+    :return: distance matrix
+    :rtype: scipy.sparse._csr_csr_matrix
+    &#34;&#34;&#34;
+    dist_mat = dok_matrix((molecule.natoms, molecule.natoms), dtype=np.float64)  # more efficient for building mat
+    for i in range(molecule.natoms):
+        for j in range(i + 1, molecule.natoms):
+            rvec = molecule.coordinates[i, :] - molecule.coordinates[j, :]
+            dist_mat[i, j] = np.linalg.norm(rvec)
+    dist_mat = triu(dist_mat, format=&#39;csr&#39;)  # convert to upper triangle matrix
+    return dist_mat</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule.init_from_molden"><code class="name flex">
+<span>def <span class="ident">init_from_molden</span></span>(<span>fpath: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class method to initiate a Molecule type from a molden file
+:param fpath: path to molden file
+:type fpath: str
+:return: Molecule object
+:rtype: Molecule</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def init_from_molden(cls, fpath: str):
+    &#34;&#34;&#34;
+    A class method to initiate a Molecule type from a molden file
+    :param fpath: path to molden file
+    :type fpath: str
+    :return: Molecule object
+    :rtype: Molecule
+    &#34;&#34;&#34;
+    atom_labels, coords = cls.read_molden(fpath)
+    return cls(
+        labels=atom_labels,
+        coordinates=coords
+    )</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule.init_from_xyz"><code class="name flex">
+<span>def <span class="ident">init_from_xyz</span></span>(<span>fpath: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class method to initialise a Molecule object from an xyz file
+:param fpath: file path to xyz file
+:type fpath: str
+:return: Molecule object
+:rtype: Molecule</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def init_from_xyz(cls, fpath: str):
+    &#34;&#34;&#34;
+    A class method to initialise a Molecule object from an xyz file
+    :param fpath: file path to xyz file
+    :type fpath: str
+    :return: Molecule object
+    :rtype: Molecule
+    &#34;&#34;&#34;
+    atom_names, coords = cls.read_xyz_mol(fpath)
+    return cls(
+        labels=atom_names,
+        coordinates=coords
+    )</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule.read_molden"><code class="name flex">
+<span>def <span class="ident">read_molden</span></span>(<span>fname: str) ‑> tuple[list, numpy.ndarray[typing.Any, numpy.dtype[+ScalarType]]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A method to read ONLY coordinate information from molden files
+:param fname: name of molden file
+:type fname: str
+:return: atomic labels and molecular cartesian coordinates
+:rtype: list, numpy.ndarray</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def read_molden(fname: str) -&gt; tuple[list, npt.NDArray]:
+    &#34;&#34;&#34;
+    A method to read ONLY coordinate information from molden files
+    :param fname: name of molden file
+    :type fname: str
+    :return: atomic labels and molecular cartesian coordinates
+    :rtype: list, numpy.ndarray
+    &#34;&#34;&#34;
+    ftype = fname.split(&#39;.&#39;)[-1]
+    if ftype != &#39;molden&#39;:
+        raise MoldenTypeError(&#39;Molecule.init_from_molden() requires a file in .molden format&#39;)
+
+    labels, atoms = [], []
+    mfile = open(fname, &#39;r&#39;)
+    Atoms = False
+    for line in mfile:
+        if &#39;[&#39; in line or &#39;--&#39; in line:
+            Atoms = False
+        if &#39;[Atoms]&#39; in line:
+            Atoms = True
+        elif Atoms:
+            words = line.split()
+            labels += words[0]
+            atom_vec = words[3:6]
+            atoms += [[eval(coords) for coords in atom_vec]]
+
+    atoms = np.array(atoms)
+    return labels, atoms</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule.read_xyz_mol"><code class="name flex">
+<span>def <span class="ident">read_xyz_mol</span></span>(<span>fname: str) ‑> tuple[list, numpy.ndarray[typing.Any, numpy.dtype[+ScalarType]]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A method to read a single set of molecular coordinate from an xyz file
+:param fname: name of xyz file
+:type fname: str
+:return: atomic labels and molecular cartesian coordinates
+:rtype: list and numpy.ndarray</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def read_xyz_mol(fname: str) -&gt; tuple[list, npt.NDArray]:
+    &#34;&#34;&#34;
+    A method to read a single set of molecular coordinate from an xyz file
+    :param fname: name of xyz file
+    :type fname: str
+    :return: atomic labels and molecular cartesian coordinates
+    :rtype: list and numpy.ndarray
+    &#34;&#34;&#34;
+    skip_lines = 1
+    ftype = fname.split(&#39;.&#39;)[-1]
+    if ftype != &#39;xyz&#39;:
+        raise XYZTypeError(&#39;Molecule.init_from_xyz() requires a file in .xyz format&#39;)
+    atom_coords, labels = [], []
+    with open(fname, &#39;r&#39;) as f:
+        first_line = f.readline().strip()
+        Nat = int(first_line)
+        for idx, line in enumerate(f):
+            if idx &gt;= skip_lines and idx &lt;= Nat+skip_lines:
+                atom_list = line.strip().split()
+                atom_coords.append([float(i) for i in atom_list[1:]])
+                labels.append(atom_list[0])
+    atom_coords = np.array(atom_coords)
+    return labels, atom_coords</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pyqofta.molecules.Molecule.atom_labels"><code class="name">var <span class="ident">atom_labels</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def atom_labels(self):
+    return self._atom_labels</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule.coordinates"><code class="name">var <span class="ident">coordinates</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def coordinates(self):
+    return self._coordinates</code></pre>
+</details>
+</dd>
+<dt id="pyqofta.molecules.Molecule.momenta"><code class="name">var <span class="ident">momenta</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def momenta(self):
+    return self._momenta</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="pyqofta.molecules.Molecule.calculate_internal_coords"><code class="name flex">
+<span>def <span class="ident">calculate_internal_coords</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A method that calculates all possible internal coordinates
+(bond distances, angles, and dihedrals) as well as their connectivity.
+:return: Internal coordinates object containing bonds, angles and dihedrals + their connectivities
+:rtype: InternalCoordinates</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_internal_coords(self):
+    &#34;&#34;&#34;
+    A method that calculates all possible internal coordinates
+    (bond distances, angles, and dihedrals) as well as their connectivity.
+    :return: Internal coordinates object containing bonds, angles and dihedrals + their connectivities
+    :rtype: InternalCoordinates
+    &#34;&#34;&#34;
+    bond_lengths, angles, dihedrals = [], [], []
+    bond_connectivities, angle_connectivities, dihedral_connectivities = [], [], []
+    if self.natoms &gt; 1: # only one bond length
+        bond_connectivity = [0, 1] # first bond connecitivty = atom 0 and 1
+        r = self.bond_length(self, bond_connectivity) # get bond length for given atoms
+        bond_lengths.append(r) # append tuple of connecitvity and bond length
+        bond_connectivities.append(bond_connectivity)
+    if self.natoms &gt; 2: # two bond lengths and one angle
+        bond_connectivity = [0, 2]
+        r = self.bond_length(self, bond_connectivity)
+        bond_lengths.append(r)
+        bond_connectivities.append(bond_connectivity)
+        ang_connectivity = [2, 0, 1] # first angle is centred on atom 0 and between bonds r_01 and r_02
+        ang = self.angle(self, ang_connectivity) # get angle for given atoms
+        angles.append(ang) # append tuple
+        angle_connectivities.append(ang_connectivity)
+    if self.natoms &gt; 3: # n-1 bond lengths, n-2 angles and n-3 dihedrals
+        for i in range(3, self.natoms):
+            bond_connectivity = [i - 3, 1]
+            r = self.bond_length(self, bond_connectivity)
+            bond_lengths.append(r)
+            bond_connectivities.append(bond_connectivity)
+            ang_connectivity = [i, i - 3, i - 2]
+            ang = self.angle(self, ang_connectivity)
+            angles.append(ang)
+            angle_connectivities.append(ang_connectivity)
+            dihedral_connectivity = [i, i - 3, i - 2, i - 1] # dihedral connectivity for molecules &gt; 3 atoms
+            dih = self.dihedral(self, dihedral_connectivity) # get dihedral
+            dihedrals.append(dih) # append tuple
+            dihedral_connectivities.append(dihedral_connectivity)
+    return InternalCoordinates(bond_lengths,
+                               bond_connectivities,
+                               angles,
+                               angle_connectivities,
+                               dihedrals,
+                               dihedral_connectivities)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pyqofta.molecules.Vibration"><code class="flex name class">
+<span>class <span class="ident">Vibration</span></span>
+<span>(</span><span>fpath: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Class to represent vibrational modes of a molecule structure - subclass of Molecule</p>
+<h2 id="attributes">Attributes</h2>
+<p>self.freqs : list
+vibrational frequencies for each of the 3N modes (in cm^-1)
+self.nfreqs : int
+Number of vibrational frequencies
+self.modes : nump.ndarray
+vectors of each of the normal mode frequencies</p>
+<ul>
+<li>All attributes inherited from Molecule class</li>
+</ul>
+<dl>
+<dt><strong><code>Methods</code></strong></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>_______</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="static-methods">Static Methods</h2>
+<p>read_molden(fname: str)</p>
+<p>Constructor for Vibration object - loads vibrational information from molden format
+:param fpath: path to molden file
+:type fpath: str</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Vibration(Molecule):
+    &#34;&#34;&#34;
+    Class to represent vibrational modes of a molecule structure - subclass of Molecule
+
+    Attributes
+    ----------
+    self.freqs : list
+        vibrational frequencies for each of the 3N modes (in cm^-1)
+    self.nfreqs : int
+        Number of vibrational frequencies
+    self.modes : nump.ndarray
+        vectors of each of the normal mode frequencies
+
+    + All attributes inherited from Molecule class
+
+    Methods
+    _______
+
+    Static Methods
+    --------------
+    read_molden(fname: str)
+    &#34;&#34;&#34;
+
+    def __init__(self, fpath: str):
+        &#34;&#34;&#34;
+        Constructor for Vibration object - loads vibrational information from molden format
+        :param fpath: path to molden file
+        :type fpath: str
+        &#34;&#34;&#34;
+        # init via molden reader - returns atoms, labels and freqs - init Molecule type and additional Vib instances
+        molden_out = self.read_molden(fpath)
+        Molecule.__init__(self, molden_out[0], molden_out[1])
+        self.freqs = molden_out[2]
+        self.nfreqs = len(self.freqs)
+        self.modes = molden_out[3]
+
+    def __repr__(self):
+        return f&#39;Vibration({self._atom_labels}, {self._coordinates}, {self.freqs})&#39;
+
+    @staticmethod
+    def read_molden(fname: str) -&gt; tuple[list, npt.NDArray, npt.NDArray, npt.NDArray]:
+        &#34;&#34;&#34;
+        A method reads vibrational information from molden files - overrides  method in Molecule parent class
+        :param fname: name of molden file to load coordinate and frequency information from
+        :type fname: str
+        :return: atomic labels, cartesian coordinates, frequencies (cm^-1) and normal mode coordinates
+        :rtype: tuple
+        &#34;&#34;&#34;
+        ftype = fname.split(&#39;.&#39;)[-1]
+        if ftype != &#39;molden&#39;:
+            raise MoldenTypeError(&#39;Vibration object must be instantiated from a .molden type file&#39;)
+
+        labels, atoms, freqs, vibs = [], [], [], []
+
+        mfile = open(fname, &#39;r&#39;)
+        Atoms = False
+        FREQ = False
+        FRNORMCOORD = False
+
+        actvib = -1
+        for line in mfile:
+            # what section are we in
+            if &#39;[&#39; in line or &#39;--&#39; in line:
+                Atoms = False
+                FREQ = False
+                FRNORMCOORD = False
+
+            if &#39;[Atoms]&#39; in line:
+                Atoms = True
+            elif &#39;[FREQ]&#39; in line:
+                FREQ = True
+            elif &#39;[FR-NORM-COORD]&#39; in line:
+                FRNORMCOORD = True
+                # extract the information in that section
+            elif Atoms:
+                words = line.split()
+                labels += words[0]
+                atom_vec = words[3:6]
+                atoms += [[eval(coords) for coords in atom_vec]]
+            elif FREQ:
+                freqs += [eval(line)]
+            elif FRNORMCOORD:
+                if &#39;vibration&#39; in line or &#39;Vibration&#39; in line:
+                    vib_list = []
+                    actvib += 1
+                    if actvib &gt; -1:
+                        vibs += [vib_list]
+                else:
+                    vib_list += [[eval(coor) for coor in line.split()]]
+
+        freqs = np.array(freqs)
+        vibs = np.array(vibs)
+        atoms = np.array(atoms)
+        return (labels, atoms, freqs, vibs)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pyqofta.molecules.Molecule" href="#pyqofta.molecules.Molecule">Molecule</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="pyqofta.molecules.Vibration.read_molden"><code class="name flex">
+<span>def <span class="ident">read_molden</span></span>(<span>fname: str) ‑> tuple[list, numpy.ndarray[typing.Any, numpy.dtype[+ScalarType]], numpy.ndarray[typing.Any, numpy.dtype[+ScalarType]], numpy.ndarray[typing.Any, numpy.dtype[+ScalarType]]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A method reads vibrational information from molden files - overrides
+method in Molecule parent class
+:param fname: name of molden file to load coordinate and frequency information from
+:type fname: str
+:return: atomic labels, cartesian coordinates, frequencies (cm^-1) and normal mode coordinates
+:rtype: tuple</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def read_molden(fname: str) -&gt; tuple[list, npt.NDArray, npt.NDArray, npt.NDArray]:
+    &#34;&#34;&#34;
+    A method reads vibrational information from molden files - overrides  method in Molecule parent class
+    :param fname: name of molden file to load coordinate and frequency information from
+    :type fname: str
+    :return: atomic labels, cartesian coordinates, frequencies (cm^-1) and normal mode coordinates
+    :rtype: tuple
+    &#34;&#34;&#34;
+    ftype = fname.split(&#39;.&#39;)[-1]
+    if ftype != &#39;molden&#39;:
+        raise MoldenTypeError(&#39;Vibration object must be instantiated from a .molden type file&#39;)
+
+    labels, atoms, freqs, vibs = [], [], [], []
+
+    mfile = open(fname, &#39;r&#39;)
+    Atoms = False
+    FREQ = False
+    FRNORMCOORD = False
+
+    actvib = -1
+    for line in mfile:
+        # what section are we in
+        if &#39;[&#39; in line or &#39;--&#39; in line:
+            Atoms = False
+            FREQ = False
+            FRNORMCOORD = False
+
+        if &#39;[Atoms]&#39; in line:
+            Atoms = True
+        elif &#39;[FREQ]&#39; in line:
+            FREQ = True
+        elif &#39;[FR-NORM-COORD]&#39; in line:
+            FRNORMCOORD = True
+            # extract the information in that section
+        elif Atoms:
+            words = line.split()
+            labels += words[0]
+            atom_vec = words[3:6]
+            atoms += [[eval(coords) for coords in atom_vec]]
+        elif FREQ:
+            freqs += [eval(line)]
+        elif FRNORMCOORD:
+            if &#39;vibration&#39; in line or &#39;Vibration&#39; in line:
+                vib_list = []
+                actvib += 1
+                if actvib &gt; -1:
+                    vibs += [vib_list]
+            else:
+                vib_list += [[eval(coor) for coor in line.split()]]
+
+    freqs = np.array(freqs)
+    vibs = np.array(vibs)
+    atoms = np.array(atoms)
+    return (labels, atoms, freqs, vibs)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="pyqofta.molecules.Molecule" href="#pyqofta.molecules.Molecule">Molecule</a></b></code>:
+<ul class="hlist">
+<li><code><a title="pyqofta.molecules.Molecule.angle" href="#pyqofta.molecules.Molecule.angle">angle</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.bond_length" href="#pyqofta.molecules.Molecule.bond_length">bond_length</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.calculate_internal_coords" href="#pyqofta.molecules.Molecule.calculate_internal_coords">calculate_internal_coords</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.dihedral" href="#pyqofta.molecules.Molecule.dihedral">dihedral</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.distance_matrix" href="#pyqofta.molecules.Molecule.distance_matrix">distance_matrix</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.init_from_molden" href="#pyqofta.molecules.Molecule.init_from_molden">init_from_molden</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.init_from_xyz" href="#pyqofta.molecules.Molecule.init_from_xyz">init_from_xyz</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.read_xyz_mol" href="#pyqofta.molecules.Molecule.read_xyz_mol">read_xyz_mol</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="pyqofta" href="index.html">pyqofta</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="pyqofta.molecules.InternalCoordinates" href="#pyqofta.molecules.InternalCoordinates">InternalCoordinates</a></code></h4>
+</li>
+<li>
+<h4><code><a title="pyqofta.molecules.Molecule" href="#pyqofta.molecules.Molecule">Molecule</a></code></h4>
+<ul class="">
+<li><code><a title="pyqofta.molecules.Molecule.angle" href="#pyqofta.molecules.Molecule.angle">angle</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.atom_labels" href="#pyqofta.molecules.Molecule.atom_labels">atom_labels</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.bond_length" href="#pyqofta.molecules.Molecule.bond_length">bond_length</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.calculate_internal_coords" href="#pyqofta.molecules.Molecule.calculate_internal_coords">calculate_internal_coords</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.coordinates" href="#pyqofta.molecules.Molecule.coordinates">coordinates</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.dihedral" href="#pyqofta.molecules.Molecule.dihedral">dihedral</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.distance_matrix" href="#pyqofta.molecules.Molecule.distance_matrix">distance_matrix</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.init_from_molden" href="#pyqofta.molecules.Molecule.init_from_molden">init_from_molden</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.init_from_xyz" href="#pyqofta.molecules.Molecule.init_from_xyz">init_from_xyz</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.momenta" href="#pyqofta.molecules.Molecule.momenta">momenta</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.read_molden" href="#pyqofta.molecules.Molecule.read_molden">read_molden</a></code></li>
+<li><code><a title="pyqofta.molecules.Molecule.read_xyz_mol" href="#pyqofta.molecules.Molecule.read_xyz_mol">read_xyz_mol</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyqofta.molecules.Vibration" href="#pyqofta.molecules.Vibration">Vibration</a></code></h4>
+<ul class="">
+<li><code><a title="pyqofta.molecules.Vibration.read_molden" href="#pyqofta.molecules.Vibration.read_molden">read_molden</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
