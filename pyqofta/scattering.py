@@ -32,8 +32,24 @@ IAM_factors_dict = {'H': {'a': [0.493002, 0.322912, 0.140191, 0.040810], 'b': [1
                     'S': {'a': [6.90530, 5.20340, 1.43790, 1.58630], 'b': [1.46790, 22.2151, 0.253600, 56.1720], 'c': 0.866900}
                     }
 
-def IAM_scattering(molecule, qvec, ELEC=False):
-    pass #TODO: WRITE IAM FUNCTIONS FOR MOLECULE AND TRAJECTORY
+
+def IAM_trajectory_scattering(trajectory, qvec, fq, FF, ELEC=FALSE):
+    Itrj = trajectory.broadcast(IAM_molecular_scattering, trajectory, qvec, fq, FF, ELEC)
+
+
+def IAM_molecular_scattering(molecule, qvec, fq, FF, ELEC=FALSE):
+    Nq = len(qvec)
+    Imol = np.zeros(Nq)
+    Iat = sum(fq**2)
+    for i in range(molecule.natoms):
+        for j in range(i+1, molecule.natoms):
+            qr_ij = qvec * np.linalg.norm(molecule.coordinates[i, :] - molecule.coordinates[i, :])
+            sin_qr_ij = np.sinc(qr_ij)
+            Imol += 2 * FF[i, j, :] * sin_qr_ij
+    if ELEC:
+        return (qvec * Imol)/Iat # sM (modified scattering used in ued community)
+    else:
+        return Imol + Iat # standard xrs
 
 
 
