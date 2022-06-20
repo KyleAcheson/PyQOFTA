@@ -3,6 +3,11 @@ import numpy.typing as npt
 from pyqofta.molecules import Molecule, Vibration
 from pyqofta.trajectories import Ensemble, Trajectory
 
+'''
+Author: Kyle Acheson
+
+A module form performing normal mode analysis on trajectories and ensembles of trajectories
+'''
 
 __all__ = [
     'nm_analysis',
