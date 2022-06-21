@@ -63,16 +63,30 @@ def IAM_ensemble_scattering(ensemble, qvec: npt.NDArray, fq: npt.NDArray, FF: np
 
     Returns
     -------
-    Iens: list
-        A list of numpy.ndarrays with the scattering signal for each trajectory. It is returned as a list
-        as the number of time steps in each trajectory may not be consistent, so it is up to the user to
-        perform any averaging with this in mind. If the user wishs to calculate the percentage difference signal,
-        that is left up to them to do externally.
+    Iens: numpy.ndarray
+        a numpy.ndarry of dimensions [ensemble.nts_max, ensemble.ntrajs, Nq], this array is initialised
+        as an array of zeros for the maximum time length of all trajectories. Hence, at each step the next trajectories
+        signal is added to it. *If any trajectory has `trajectory.nts < ensemble.nts_max` then that index in the array
+        Iens will be filled with zeros for values of `t > ensemble.nts_max`, therefore it is up to the user to
+        perform any temporal averaging to account for this.* Note: one can use `ensemble.tcount` to do this.
+        If the percentage difference signal is needed, that is left to the user, returned here is *Itot*.
     """
+    #        A list of numpy.ndarrays with the scattering signal for each trajectory. It is returned as a list
+    #        as the number of time steps in each trajectory may not be consistent, so it is up to the user to
+    #        perform any averaging with this in mind. If the user wishs to calculate the percentage difference signal,
+    #        that is left up to them to do externally.
+
     if not isinstance(ensemble, Ensemble):
         raise EnsembleTypeError('To calculate scattering over an ensemble an Ensemble object is required')
-    Iens = ensemble.broadcast(IAM_trajectory_scattering, qvec, fq, FF, ELEC)
-    return list(Iens)
+    #Iens = ensemble.broadcast(IAM_trajectory_scattering, qvec, fq, FF, ELEC)
+    #return list(Iens)
+    Nq = len(qvec)
+    Iens = np.zeros((ensemble.nts_max, ensemble.ntrajs, Nq), dtype=float)
+    for idx, traj in enumerate(ensemble):
+        Itrj = IAM_trajectory_scattering(traj, qvec, fq, FF, ELEC)
+        Iens[:traj.nts, idx, :] += Itrj
+    return Iens
+
 
 
 def IAM_trajectory_scattering(trajectory, qvec, fq, FF, ELEC=False) -> npt.NDArray:

@@ -77,21 +77,24 @@ class Ensemble:
         number of trajectories in total
     nts_max: int
         maximum number of timesteps over all trajectories (trajs may not all run for same time period)
+    tcount: numpy.ndarray
+        an vector of length `nts_max` that has the number of trajectories at each time step (used for averaging)
     weights: list
         a list of floats containing trajectory weights (default is equal weighting)
 
     """
 
     def __init__(self, fpaths: list, traj_type: str):
-        self.trajs, self.nts_max = self.load_ensemble(fpaths, traj_type)
+        self.trajs, self.nts_max, self.tcount = self.load_ensemble(fpaths, traj_type)
         self.ntrajs = len(self.trajs)
         self.weights = [1.0/self.ntrajs for i in range(self.ntrajs)]
+
 
     def __iter__(self):
         return EnsembleIterator(self)
 
     @staticmethod
-    def load_ensemble(fpaths: list, traj_type: str) -> tuple[list, int]:
+    def load_ensemble(fpaths: list, traj_type: str) -> tuple[list, int, npt.NDArray]:
         """
         A method to load an ensemble of trajectories
 
@@ -110,6 +113,9 @@ class Ensemble:
             a list of trajectory objects
         max_time: int
             maximum time the trajectories run for
+        tcount: numpy.ndarray
+            a vector of length max_time with the number of trajectories present at that given time step
+            (used for averaging trajectories that have an inconsistent number of time steps)
         """
         traj_type = traj_type.lower()
         if traj_type not in acceptable_traj_type:
@@ -125,7 +131,11 @@ class Ensemble:
             else:
                 raise EnsembleTypeError(f'Trajectory type: {traj_type} is not yet implemented.')
 
-        return trajs, max_time
+        tcount = np.zeros(max_time, dtype=int)
+        for traj in trajs:
+            tcount[:traj.nts] += 1
+
+        return trajs, max_time, tcount
 
     def broadcast(self, func, *args):
         """
