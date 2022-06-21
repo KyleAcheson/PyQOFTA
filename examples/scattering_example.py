@@ -42,4 +42,6 @@ Iens = list(scat.IAM_ensemble_scattering(sh_ensemble, qvec, fq, FF))
 
 Ien = list(Iens)
 
+# DO SOME PLOTTING OF EACH TRAJECTORY - OR AVERAGE OVER LIST
+
 print('Done ensemble scattering')
