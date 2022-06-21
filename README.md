@@ -105,39 +105,22 @@ If you wish to uninstall PyQOFTA, run:
 sudo rm $(cat installed_files.txt)
 ```
 
-### Importing PyQOFTA Packages For Use In Your Own Scripts:
+### Generating documentation:
 
-In your own file, for example you can import the `trajectories` and `molecules` modules as:
-
+install pdoc3 if not installed:
 ```
-import pyqofta.trajectories as trj # ensemble and trajectory classes
-import pyqofta.molecules as mol # molecule, vibration, internal coordinate and atom classes
-
-fpath = '/path/to/your/trajectory/'
-traj_object = trj.SharcTrajectory.init_from_xyz(fpath) # just an example
-
-# do some stuff ...
-
+pip3 install pdoc3
 ```
 
-Alternatively (although not recommended), you can import the whole PyQOFTA package as,
-
+to generate a local server to view documentation of the modules run the following command in
+the root directory of the repo
 ```
-import pyqfota
-
-fpath = '/path/to/your/trajectory/'
-traj_object = pyqofta.trajectories.SharcTrajectory.init_from_xyz(fpath) # a bit too long
-
-# do some stuff ...
-
+pdoc3 --http localhost:8080 pyqofta
 ```
 
-### Development Practices:
+go to:
+```
+http://localhost:8080
+```
 
-* Docstrings for all major public methods
-* 4 spaces for indentation 
-* Main branch should always be working (no development on this branch), instead:
-** Pull latest version
-** Create a new branch for your feature locally - develop feature/ fix bugs
-** Push changes to new feature branch
-** Wait for review and integration into main branch
+currently an issue with restructured text formatted docstrings - to fix
