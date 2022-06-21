@@ -15,7 +15,7 @@ ref_structure = mol.Vibration(freq_path)
 time_intervals = [[0, 2001]]
 
 # call nma analysis on each trajectory in ensemble. Returns map object
-nma_trajs = trj.Ensemble.broadcast(nma.nma_traj, sh_ensemble, ref_structure, time_intervals)
+nma_trajs = sh_ensemble.broadcast(nma.nma_traj, ref_structure, time_intervals)
 nma_trajs = np.array(list(nma_trajs)) # will have shape (ntraj, 2, ntints, nfreqs) - 2 = [avg, std]
 
 [average_normal_modes, nm_std_ensemble] = nma.nm_analysis(sh_ensemble, ref_structure, time_intervals)

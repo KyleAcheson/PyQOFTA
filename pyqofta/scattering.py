@@ -3,7 +3,7 @@ import numpy.typing as npt
 from pyqofta.molecules import Molecule
 from pyqofta.trajectories import Ensemble, Trajectory, TrajectorySH
 
-'''
+"""
 Author: Kyle Acheson
 
 A module for calculating scattering observables for individual molecules, trajectories and ensembles of trajectories.
@@ -11,7 +11,7 @@ So far limited to rotationally averaged elastic scattering within the IAM for Su
 Will soon include elastic scattering for Gaussian wavepacket based methods within the BAT approximation for the
 calculation of off-diagonal terms between different trajectories. An interface to Ab-initio scattering code may
 one day be implemented.
-'''
+"""
 
 __all__ = [
     'IAM_ensemble_scattering',
@@ -46,64 +46,88 @@ IAM_factors_dict = {'H': {'a': [0.493002, 0.322912, 0.140191, 0.040810], 'b': [1
 
 def IAM_ensemble_scattering(ensemble, qvec: npt.NDArray, fq: npt.NDArray, FF: npt.NDArray, ELEC=False) -> list:
     """
-    Calculates the IAM scattering signal for a whole ensemble of trajectories.
-    Returns a list of numpy.ndarrays containing scattering signals for each trajectory.
-    :param ensemble: an ensemble of trajectories
-    :type ensemble: Ensemble
-    :param qvec: momentum transfer vector in inverse angstrom
-    :type qvec: numpy.ndarray
-    :param fq: atomic form factors for all atoms
-    :type fq: numpy.ndarray
-    :param FF: form factor products (i == j)
-    :type FF: numpy.ndarray
-    :param ELEC: flag to request electron scattering factors instead of x-ray (default=False)
-    :type ELEC: Bool
-    :returns: scattering signal for a series of trajectories
-    :rtype: list
+    Calculates the IAM elastic scattering signal for a whole ensemble of trajectories.
+
+    Parameters
+    ----------
+    ensemble : Ensemble
+        an ensemble of trajectories
+    qvec : numpy.ndarray
+        momentum transfer vector
+    fq : numpy.ndarray
+        atomic form factor for each atom
+    FF : numpy.ndarray
+        form factor products
+    ELEC : Bool
+        flag to request electron scattering (calculates dsM as common in UED community) - default = False
+
+    Returns
+    -------
+    Iens: list
+        A list of numpy.ndarrays with the scattering signal for each trajectory. It is returned as a list
+        as the number of time steps in each trajectory may not be consistent, so it is up to the user to
+        perform any averaging with this in mind. If the user wishs to calculate the percentage difference signal,
+        that is left up to them to do externally.
     """
     if not isinstance(ensemble, Ensemble):
         raise EnsembleTypeError('To calculate scattering over an ensemble an Ensemble object is required')
-    Iens = ensemble.broadcast(IAM_trajectory_scattering, ensemble, qvec, fq, FF, ELEC)
+    Iens = ensemble.broadcast(IAM_trajectory_scattering, qvec, fq, FF, ELEC)
     return list(Iens)
+
 
 def IAM_trajectory_scattering(trajectory, qvec, fq, FF, ELEC=False) -> npt.NDArray:
     """
-    Calculates scattering signal for a single trajectory.
-    :param trajectory: a trajectory
-    :type trajectory: Trajectory
-    :param qvec: momentum transfer vector in inverse angstrom
-    :type qvec: numpy.ndarray
-    :param fq: atomic form factors for all atoms
-    :type fq: numpy.ndarray
-    :param FF: form factor products (i == j)
-    :type FF: numpy.ndarray
-    :param ELEC: flag to request electron scattering factors instead of x-ray (default=False)
-    :type ELEC: Bool
-    :return: trajectory scattering signal
-    :rtype: numpy.ndarray
+    Calculates IAM elastic scattering for a single trajectory.
+
+    Parameters
+    ----------
+
+    trajectory : Trajectory
+        a trajectory
+    qvec : numpy.ndarray
+        momentum transfer vector
+    fq : numpy.ndarray
+        atomic form factor for each atom
+    FF : numpy.ndarray
+        form factor products
+    ELEC : Bool
+        flag to request electron scattering (calculates dsM as common in UED community) - default = False
+
+    Returns
+    -------
+
+    Itrj: numpy.ndarray
+        scattering signal for a single trajectory
     """
     if not isinstance(trajectory, Trajectory):
         raise TrajectoryTypeError('To calculate the scattering over time a Trajectory object is required.')
-    Itrj = trajectory.broadcast(IAM_molecular_scattering, trajectory, qvec, fq, FF, ELEC)
+    Itrj = trajectory.broadcast(IAM_molecular_scattering, qvec, fq, FF, ELEC)
     return np.array(list(Itrj))
 
 
 def IAM_molecular_scattering(molecule, qvec, fq, FF, ELEC=False) -> npt.NDArray:
     """
-    Calculates scattering signal for a static molecule
-    :param molecule: a molecule
-    :type molecule: Molecule
-    :param qvec: momentum transfer vector in inverse angstrom
-    :type qvec: numpy.ndarray
-    :param fq: atomic form factors for all atoms
-    :type fq: numpy.ndarray
-    :param FF: form factor products (i == j)
-    :type FF: numpy.ndarray
-    :param ELEC: flag to request electron scattering factors instead of x-ray (default=False)
-    :type ELEC: Bool
-    :return: molecule scattering signal
-    :rtype: numpy.ndarray
+    IAM scattering for a single static molecule
+
+    Parameters
+    ----------
+    molecule : Molecule
+        a static molecule object
+    qvec : numpy.ndarray
+        momentum transfer vector
+    fq : numpy.ndarray
+        atomic form factor for each atom
+    FF : numpy.ndarray
+        form factor products
+    ELEC : Bool
+        flag to request electron scattering (calculates dsM as common in UED community) - default = False
+
+    Returns
+    -------
+    Itot : numpy.ndarray
+        scattering signal from a single molecule (Itot for xrs and sM (q*Imol/Iat) for ued)
     """
+
     Nq = len(qvec)
     Imol = np.zeros(Nq)
     Iat = sum(fq**2)
@@ -117,7 +141,6 @@ def IAM_molecular_scattering(molecule, qvec, fq, FF, ELEC=False) -> npt.NDArray:
         return Itot
     else:
         Itot = Imol + Iat
-        print(Itot[100], molecule.coordinates[0, 1])
         return Itot # standard xrs
 
 
@@ -125,15 +148,27 @@ def IAM_molecular_scattering(molecule, qvec, fq, FF, ELEC=False) -> npt.NDArray:
 def IAM_form_factors(molecule, qvec: npt.NDArray, ELEC=False) -> tuple[npt.NDArray, npt.NDArray]:
     """
     Gets the IAM form factors for a given molecule (either x-ray or electron), also calculates the form factor
-    product that appear as diagonal terms - saves calculation of the diagonal terms at every time step.
-    :param molecule: a molecular structure
-    :type molecule: Molecule
-    :param qvec: momentum transfer vector in inverse angstrom
-    :type qvec: numpy.ndarray
-    :param ELEC: flag to request electron scattering factors instead of x-ray (default=False)
-    :type ELEC: Bool
-    :return: form factor products (sum**2 amounts diagonal term in IAM equation) and form factors
-    :rtype: numpy.ndarray
+    product that appear in the calculation - so you do not have to calculate them at each iteration of the loop.
+
+    If `ELEC=True` then will return the Mott-Bethe form factors.
+    TODO: ADD COMPATIBILITY WITH ELSEPA FORM FACTORS
+
+    Parameters
+    ----------
+
+    molecule : Molecule
+        a static molecule object
+    qvec : numpy.ndarray
+        momentum transfer vector
+    ELEC : Bool
+        flag to request electron scattering (calculates dsM as common in UED community) - default = False
+
+    Returns
+    -------
+    fq : numpy.ndarray
+        atomic form factor for each atom
+    FF : numpy.ndarray
+        form factor products
     """
     Nq = len(qvec)
     if not isinstance(molecule, Molecule):
@@ -153,14 +188,9 @@ def IAM_form_factors(molecule, qvec: npt.NDArray, ELEC=False) -> tuple[npt.NDArr
 
 def xrs(atoms, qAng):
     """
-    Returns the x-ray scattering form factor for a given series of atoms.
-    :param atoms: atmoic labels
-    :type atoms: list
-    :param qAng: momentum transfer vector
-    :type qAng: numpy.ndarray
-    :return: x-ray form factor
-    :rtype: numpy.ndarray
+    Returns the IAM form factors for xrs
     """
+
     Nat = len(atoms)
     Nq = len(qAng)
     fq = np.zeros((Nat, Nq))
@@ -178,14 +208,9 @@ def xrs(atoms, qAng):
 
 def els(atoms, qAng):
     """
-    Returns the electron scattering (Mott-Bethe) form factor for a given series of atoms.
-    :param atoms: atmoic labels
-    :type atoms: list
-    :param qAng: momentum transfer vector
-    :type qAng: numpy.ndarray
-    :return: Mott-Bethe form factor
-    :rtype: numpy.ndarray
+    Caclulates the Mott-Bethe electron scattering form factors within IAM
     """
+
     Nat = len(atoms)
     Nq = len(qAng)
     fq = np.zeros((Nat, Nq))

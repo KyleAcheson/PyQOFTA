@@ -19,7 +19,7 @@ cs2_traj = trj.TrajectorySH.init_from_xyz(trajectory_path)
 
 # using the normal mode analysis module broadcast the normal mode transform over
 # all timesteps of a trajectory wrt the reference normal modes in ref_structure
-norm_mode_coords = trj.Trajectory.broadcast(nma.normal_mode_transform, cs2_traj, ref_structure) # returns a map object (not allocated to memory yet)
+norm_mode_coords = cs2_traj.broadcast(nma.normal_mode_transform, ref_structure) # returns a map object (not allocated to memory yet)
 norm_mode_coords = np.array(list(norm_mode_coords)) # to get as np.array if you need to allocate it
 
 tints = [[0, 1000], [1000, 2001]]

@@ -1,10 +1,20 @@
 """
 Author: Kyle Acheson
 A module containing the basic data structures for analysing quantum dynamics trajectories.
-Contains Ensemble, the general Trajectory structure with subclasses for specific
-type of trajectories - e.g. Sharc trajectories.
+Contains `Ensemble`, the general `Trajectory` structure with subclasses for specific
+type of trajectories - e.g. Sharc trajectories (`TrajectorySH`). The idea is that one can easily
+construct these structures from the molecular building blocks in the `molecules.py` module.
+Trajectories are defined as a group of `Molecule` type objects and Ensembles as a group of `Trajectory` type objects.
+These can be generated easily by providing a parent directory path that contains all trajecoties as subdirectories.
 
-Generally objects are instantiated from external files (xyz, molden etc.).
+In the future, one may add additional subclasses of `Trajectory` such as TrajectoryMCE which will define properties
+that are unique to MCE trajectories (such as widths and populations over all states). By building the code in this
+fashion, we can build external modules such as `scattering.py` which have a series of similar functions for each use case,
+these functions can be defined to work only on the correct type of trajectory. For example, the treatment of scattering
+between SH and MCE can be different if one accounts for the overlap of the MCE basis functions. The ease of quickly
+defining an external function for a specific use case within the framework laid out here is in the fact that one
+can easily *broadcast* these operations over the `Ensemble` and `Trajectory` types.
+
 """
 
 import numpy as np
@@ -26,6 +36,51 @@ class EnsembleTypeError(TypeError):
         super().__init__(msg, *args, **kwargs)
 
 class Ensemble:
+    """
+    A class to describe an ensemble of trajectories. This is instantiated by providing a list of file paths to
+    every trajectory you would like to read in, along with the argument for the trajectory type.
+    For example, if `fpaths` is a list of the paths to N SH trajectory files - `Ensemble(fpaths, 'sh')`.
+    By default the ensemble is configured with weights equal to `1/Ntraj`, this can be explioted in averaging
+    over trajectories, or in the future an external observable fitting module will allow for the optimisation
+    of these weights to experimental data.
+
+    The Ensemble object is defined as being iterable, so that if one does:
+    ```
+    ensemble = Ensemble(fpaths, 'sh')
+    for traj in ensemble:
+        # do some stuff
+    ```
+    you can iterate over the list of individual `Trajectory` objects defined within the property `self.trajs`.
+
+    The `broadcast` method allows one to load an external module easily and broadcast functions over the whole
+    series of trajectories contained within the ensemble. This will return a map generator object which
+    can be converted to a list easily. For example,
+
+    ```
+    ensemble.broadcast(some_function, arg1, arg2, ...)
+    ```
+
+    will broadcast the trajectory level function:
+
+    ```
+    def some_function(trajectory, arg1, arg2, ...):
+        return something
+    ```
+    over all trajectory elements of the list `ensemble.trajs`.
+
+    Attributes
+    ----------
+
+    trajs: list
+        a list of individual `Trajectory` objects instantiated from file
+    ntrajs: int
+        number of trajectories in total
+    nts_max: int
+        maximum number of timesteps over all trajectories (trajs may not all run for same time period)
+    weights: list
+        a list of floats containing trajectory weights (default is equal weighting)
+
+    """
 
     def __init__(self, fpaths: list, traj_type: str):
         self.trajs, self.nts_max = self.load_ensemble(fpaths, traj_type)
@@ -37,6 +92,25 @@ class Ensemble:
 
     @staticmethod
     def load_ensemble(fpaths: list, traj_type: str) -> tuple[list, int]:
+        """
+        A method to load an ensemble of trajectories
+
+        Parameters
+        ----------
+
+        fpaths : list
+            a list of all trajectory files to iterate over and load
+        traj_type : str
+            type of trajectory - acceptable values are `sh, mce, aimce` (note sh only implemented currently).
+            This will determine what subclass of `Trajectory` is instantiated.
+
+        Returns
+        -------
+        trajs: list
+            a list of trajectory objects
+        max_time: int
+            maximum time the trajectories run for
+        """
         traj_type = traj_type.lower()
         if traj_type not in acceptable_traj_type:
             raise EnsembleTypeError
@@ -53,10 +127,23 @@ class Ensemble:
 
         return trajs, max_time
 
-    @staticmethod
-    def broadcast(func, ensemble, *args):
-        #TODO: CONVERT TO AN INSTANCE METHOD
-        map_obj = map(lambda elem: func(elem, *args), ensemble)
+    def broadcast(self, func, *args):
+        """
+        Broadcast a general function over the instance of `Ensemble`
+
+        Parameters
+        ----------
+        func : function
+            a general function that operates on `Trajectory` types
+        args :
+            a list of all arguments that the function depends on apart from the `Trajectory` instance itself
+
+        Returns
+        -------
+        map_obj: map object
+            a map object that yields the result of the function applied to each trajectory in `self.trajs`
+        """
+        map_obj = map(lambda elem: func(elem, *args), self)
         return map_obj
 
     #TODO: DEFINE A GENERALISED FILTER LIKE METHOD
@@ -67,29 +154,39 @@ class Ensemble:
 class Trajectory:
     """
     Class to represent a general Trajectory. This is the parent class which is
-    inhereted by a series of other classes that represent more specifric trajectory structures.
+    inhereted by a series of other classes that represent more specific trajectory structures.
     For example, trajectories calculated via. Surface Hopping (SH), Multi-configurational Ehrenfest (MCE),
-    Ab-Initio Multiple Spawning (AIMS) etc. This class is only used to define methods which are universal
-    wrt the type of trajectory.
+    Ab-Initio Multiple Spawning (AIMS) etc. This class is only used to define properties and methods which are universal
+    wrt the type of trajectory, for example the `broadcast` and `internal coordinate` methods.
+    *Instances of Trajectory are not instantiated themselves*, instead one instantiates `TrajectorySH` or `TrajectoryMCE` etc.
+    objects which both inherent shared properties and methods from the Trajectory class here.
 
-    Attributes:
-    -----------
-    self.geometries: list
+    The properties `pops` and `widths` are by default set to None type.
+
+    In a similar fashion to the `Ensemble` class, Trajectory objects are also iterable. So one can do:
+
+    ```
+    trajectory = TrajectorySH.init_from_xyz(fpath) # here we are using a SH trajectory as an example
+    for timestep in trajectory:
+        # do some stuff to molecule objects that make up trajectory
+    ```
+    this iterates over all the molecule objects within the trajectory.
+
+    Attributes
+    ----------
+
+    geometries: list
         list of Molecule objects that describe coorindates and associated properties over all timesteps
-    self.time: list
+    time: list
         time vector
-    self.nts: int
+    nts: int
         number of time steps in trajectory
-    self.dt: int
+    dt: int
         timestep size (typically fs)
-    self.widths: numpy.ndarray
+    widths: numpy.ndarray
         array of widths for methods with a frozen Gaussian description of the nuclear wavefunction (default = None)
-    self.pops: numpy.ndarray
+    pops: numpy.ndarray
         populations of electronic states (default = None)
-
-    Methods:
-    ________
-    internal_coordinates
 
     """
 
@@ -100,48 +197,62 @@ class Trajectory:
         self.dt = self.time[1]-self.time[0]
         self.widths = widths
         self.pops = pops
-        self.weight = 1
 
     def __iter__(self):
         return TrajectoryIterator(self)
 
-    def internal_coordinates(self):
+    def calculate_internal_coords(self):
         """
-        A method to generate and return all combinations of internal coordinates over all
-        timestep for a given instance of a trajectory.
-        :return: seperate arrays for distances, angles and dihedral angles
-        :rtype: nump.ndarray
-        """
-        # TODO: REWRITE IN TERMS OF NEW INTERNAL COORDINATE FRAMEWORK (THIS METHOD WILL NOT WORK ATM)
-        distances, angles, dihedrals = [], [], []
-        for timestep in self.geometries:
-            D = timestep.distance_matrix()
-            ICs = timestep.ret_internal_coords(D)
-            bond_objs = list(filter(lambda x: type(x) == mol.BondDistance, ICs))
-            distances.append([bond.magnitude for bond in bond_objs])
-            ang_objs = list(filter(lambda x: type(x) == mol.BondAngle, ICs))
-            angles.append([ang.magnitude for ang in ang_objs])
-            dih_objs = list(filter(lambda x: type(x) == mol.DihedralAngle, ICs))
-            dihedrals.append([dih.magnitude for dih in dih_objs])
-        bond_connectivity = [bond.connectivity for bond in bond_objs]
-        angle_connectivity = [ang.connectivity for ang in ang_objs]
-        dihedral_connectivity = [dih.connectivity for dih in dih_objs]
-        return np.array(distances), np.array(angles), np.array(dihedrals)  # init dihedrals as float64 is a waste (if empty)
+        A method to calculate *all* internal coordinates over the whole trajectory.
+        If the user is only interested in a selection of internal coordinates, for example one bond length or angle etc.,
+        it is recommended to call the `bond_length`, `angle` or `dihedral` methods directly by specifying the atom
+        connectivity.
 
-    @staticmethod
-    def broadcast(func, trajectory, *args):
+        Returns
+        -------
+        internal_coords: InternalCoordinates
+            a set of internal coordinates described by an InternalCoordinates object. This contains
+            an attribute for each IC and the list of connectivities for each. In the case that of di- and tri-atomic
+            molecules that have no defined angle or dihedral, those instance variables will be empty.
+            In the case of a trajectory, the bond/ angles/ dihedral properties of `InternalCoordinates`
+            are 2D numpy.ndarrays with dimensions [trajectory.nts, number bond lenghts/ angles/ dihedrals]
         """
-        A method that allows for the broadcasting of a function over elements of an iterable.
-        This generalised function may contain additional arguments. This is to allow for the
-        broadcast of molecular level functions over the individual timesteps of a trajectory object.
-        :param func: any function that takes elements of iterable as an argument
-        :param trajectory: an instance of the Trajectory class
-        :param args: additional arguments to function
-        :return: a Trajectory property with a function applied to its elements
-        :rtype: map object
+        bond_lengths, angles, dihedrals = [], [], []
+        for idx, timestep in enumerate(self):
+            ICs = timestep.calculate_internal_coords() # ret an InternalCoordinates type
+            bond_lengths.append(ICs.bonds)
+            angles.append(ICs.angles)
+            dihedrals.append(ICs.dihedrals)
+            if idx == 0:
+                bond_connect = ICs.bond_connectivity
+                angle_connect = ICs.angle_connectivity
+                dihedral_connect = ICs.dihedral_connectivity
+        return mol.InternalCoordinates(bond_lengths,
+                                       bond_connect,
+                                       angles,
+                                       angle_connect,
+                                       dihedrals,
+                                       dihedral_connect)
+
+
+    def broadcast(self, func, *args):
         """
-        #TODO: CONVERT TO AN INSTANCE METHOD
-        map_obj  = map(lambda elem: func(elem, *args), trajectory)
+        Broadcast a general function over the instance of `Trajectory` - applies function to the `Molecule`
+        objects that make up the trajectories.
+
+        Parameters
+        ----------
+        func : function
+            a general function that operates on `Molecule` types
+        args :
+            a list of all arguments that the function depends on apart from the `Molecule` instance itself
+
+        Returns
+        -------
+        map_obj: map object
+            a map object that yields the result of the function applied to each trajectory in `self.trajs`
+        """
+        map_obj  = map(lambda elem: func(elem, *args), self)
         return map_obj
 
 
@@ -152,27 +263,17 @@ class TrajectorySH(Trajectory):
     TrajectorySH inherits from the general Trajectory class.
     Here the nuclear wavefunction is a delta-function and so widths are not included as a property.
 
-    Attributes:
+    Attributes
     -----------
-    self.geometries: list
+    geometries: list
         list of Molecule objects that describe coorindates and associated properties over all timesteps
-    self.time: list
+    time: list
         time vector
-    self.nts: int
+    nts: int
         number of time steps in trajectory
-    self.dt: int
+    dt: int
         timestep size (typically fs)
 
-    Methods:
-    ________
-
-    Class Methods:
-    --------------
-    init_from_xyz(cls, fpath)
-
-    Static Methods:
-    ---------------
-    read_sharc(trj_file)
     """
 
 
@@ -184,13 +285,15 @@ class TrajectorySH(Trajectory):
         self.weight = 1
 
     @classmethod
-    def init_from_xyz(cls, fpath):
+    def init_from_xyz(cls, fpath: list):
         """
-        A method to instantiate a trajectory object from an output file
-        :param fpath: trajectory output file
-        :type fpath:str
-        :return: trajectory object
-        :rtype: TrajectorySH
+        A method to instantiate a SH trajectory object from an xyz file
+
+        Parameters
+        ----------
+        fpath : str
+            path to trajectory output file
+
         """
         geoms, tvec = cls.read_sharc(fpath)
         return cls(
@@ -199,13 +302,23 @@ class TrajectorySH(Trajectory):
         )
 
     @staticmethod
-    def read_sharc(trj_file):
+    def read_sharc(trj_file: str):
         """
-        A method to read information from SHARC output files (xyz format)
-        :param trj_file: output file name
-        :type trj_file: str
-        :return: geometries over all time steps and time vector
-        :rtype: list
+        A method to read information on trajectories from SHARC output files (xyz files)
+
+        Parameters
+        ----------
+        trj_file : str
+            file path
+
+        Returns
+        -------
+        geometries: list
+            list of geometries (cartesian coordinates) over all time steps
+
+        time: list
+            time vector
+
         """
         skip_lines = 2 # top two lines of each timestep block have no coordinates
         geometries, coords, labels, time = [], [], [], []

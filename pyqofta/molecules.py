@@ -1,15 +1,16 @@
-'''
+"""
 Author: Kyle Acheson
 
-A module containing Molecule and Vibration
+A Module containing the basic molecular data structures used within the pyqofta framework.
+These structures include `Molecule`, `Vibration` and `InternalCoordinates`.
+Inside each are a series a routines for instantiating objects from file types such as `xyz` and `molden`.
+These structures are used within other external modules such as `scattering.py` and `normal_mode_analysis.py`
+to perform various operations on these structures. These structures are also used within the module `trajectories.py`
+which contain data structures that define trajectories and ensembles of trajectories using these molecular
+structure as building blocks.
 
-Objects of type Molecule can be instantiated without an external file, but
-for the instantiation of an object of type Vibration one must provide frequency information
-from an external molden file.
-
-If an atom required is not parameterised, you may add it to the dictionary: periodic_table.
-
-'''
+If an atom required is not parameterised, you may add it to the dictionary in the source code: `periodic_table`.
+"""
 
 import numpy as np
 import numpy.typing as npt
@@ -51,55 +52,36 @@ periodic_table = {
 
 class Molecule:
     """
-    Class to represent a molecule
+    A static molecule object. Includes all information on a molecular structure at a given point
+    in time along a trajectory. Currently does not include any values of momentum, but can be extended to include.
+    The structure can be built in a script by the user using its constructor which requires a list of atomic labels
+    for each atom and a set of molecular coordinates stored as a numpy.ndarray where the rows corrospond to the atom number.
+    Alternatively (as is the norm), one can construct the object using the class constructors `init_from_xyz`
+    and `init_from_molden` which reads in coordinates and atomic labels from an external xyz or molden file.
+
+    One can calculate all, or a selection of the internal coordinates for the molecule using the internal coordinate methods.
+    This class also includes methods for calculating the rmsd between two molecule structures via. the Kabsch algorithm.
+    It is also possible to calculate observables for the static molecule, although currently only using the scattering
+    module. With the addition of fitting modules, it will be possible to fit an observable from a single static
+    structure to an experimental observable.
 
     Attributes
     ----------
     atom_labels : list
-        atomic symbols for each atom in molecule
+        a list of strings containing atomic symbols for each atom in the molecule - forced to be upper case.
     coordinates : numpy.ndarray
-        molecule coordinates
-    natoms : list
-        total number of atoms in molecule
+        molecule cartesian coordinates - rows corrosond to the atoms and columns xyz.
+    natoms : int
+        total number of atoms in molecule.
     nelecs : list
-        number of electrons in each individual atom in molecule
+        list of the number of electrons for each atom entry of the coordinate matrix.
     Zs : list
-        mass of each individual atom in molecule
+        list of the atomic masses for each atom entry of the coordinate matrix .
     momenta : numpy.ndarray
-        momentum vectors for each atom in molecule
-
-    Methods
-    _______
-
-    Class methods:
-    --------------
-    init_from_xyz(cls, fpath: str)
-    init_from_molden(cls, fpath: str)
-
-    Instance methods:
-    -----------------
-    calculate_internal_coords()
-
-    Static methods:
-    ---------------
-    read_xyz_mol(fname: str)
-    read_molden(fname: str)
-    distance_matrix(Molecule)
-    bond_length(Molecule, bond_connectivity: list)
-    angle(Molecule, angle_connectivity: list)
-    dihedral(Molecule, dihedral_connectivity: list)
+        momentum vectors in cartesian coordinates for each atom (set to None by default).
     """
 
     def __init__(self, labels, coordinates, momenta=None):
-        """
-        Constructor for Molecule object
-        :param labels: labels of each atom in molecule
-        :type labels: list
-        :param coordinates: molecular coordinates
-        :type coordinates: numpy.ndarray
-        :param momenta: momentum vectors for each atom (optional)
-        :type momenta: numpy.ndarray
-        """
         self._atom_labels = self.__check_atom_labels(labels)
         self.natoms, self.nelecs, self.Zs = self.__get_atoms_info()
         self._coordinates = coordinates
@@ -162,13 +144,7 @@ class Molecule:
     def __check_array_coords(natoms: int, array: npt.NDArray, property: str):
         """
         Private method to check that property is defined for all molecular coordinates
-        and has the correct type and dimensionality
-        :param natoms: number of atoms in molecule
-        :type natoms: int
-        :param array: An array that defines a property for some coordinates
-        :type array: numpy.ndarray
-        :param property: Name of the property to check
-        :type property: str
+        and has the correct type and dimensionality.
         """
         if type(array) != np.ndarray:
             raise Exception("%s must be specified as a numpy array" % property)
@@ -181,11 +157,12 @@ class Molecule:
     @classmethod
     def init_from_xyz(cls, fpath: str):
         """
-        A class method to initialise a Molecule object from an xyz file
-        :param fpath: file path to xyz file
-        :type fpath: str
-        :return: Molecule object
-        :rtype: Molecule
+        A class constructor that instantiates a Molecule object from an external xyz file specified in the path.
+
+        Parameters
+        ----------
+        fpath : str
+            absolute path to the xyz file containing the molecular structure
         """
         atom_names, coords = cls.read_xyz_mol(fpath)
         return cls(
@@ -196,11 +173,20 @@ class Molecule:
     @staticmethod
     def read_xyz_mol(fname: str) -> tuple[list, npt.NDArray]:
         """
-        A method to read a single set of molecular coordinate from an xyz file
-        :param fname: name of xyz file
-        :type fname: str
-        :return: atomic labels and molecular cartesian coordinates
-        :rtype: list and numpy.ndarray
+        A static method which reads coordinates from an xyz file.
+
+        Parameters
+        ----------
+        fname : str
+            path to file.
+
+        Returns
+        -------
+        labels: list
+            a list of atomic labels for each atom in the coordinate matrix.
+        atom_coords: numpy.ndarray
+            an array that corrosponds to cartesian coordinates, rows are the atoms.
+
         """
         skip_lines = 1
         ftype = fname.split('.')[-1]
@@ -221,11 +207,12 @@ class Molecule:
     @classmethod
     def init_from_molden(cls, fpath: str):
         """
-        A class method to initiate a Molecule type from a molden file
-        :param fpath: path to molden file
-        :type fpath: str
-        :return: Molecule object
-        :rtype: Molecule
+        A class constructor that instantiates a Molecule object from an external molden file.
+
+        Parameters
+        ----------
+        fpath : str
+            path to the molden file
         """
         atom_labels, coords = cls.read_molden(fpath)
         return cls(
@@ -236,15 +223,23 @@ class Molecule:
     @staticmethod
     def read_molden(fname: str) -> tuple[list, npt.NDArray]:
         """
-        A method to read ONLY coordinate information from molden files
-        :param fname: name of molden file
-        :type fname: str
-        :return: atomic labels and molecular cartesian coordinates
-        :rtype: list, numpy.ndarray
+        A static method which reads coordinates a molden file.
+
+        Parameters
+        ----------
+        fname : str
+            path to file.
+
+        Returns
+        -------
+        labels: list
+            a list of atomic labels for each atom in the coordinate matrix.
+        atom_coords: numpy.ndarray
+            an array that corrosponds to cartesian coordinates, rows are the atoms.
         """
         ftype = fname.split('.')[-1]
         if ftype != 'molden':
-            raise MoldenTypeError('Molecule.init_from_molden() requires a file in .molden format')
+            raise MoldenTypeError('Molecule.read_molden() requires a file in .molden format')
 
         labels, atoms = [], []
         mfile = open(fname, 'r')
@@ -266,12 +261,17 @@ class Molecule:
     @staticmethod
     def distance_matrix(molecule):
         """
-        Method that computes the distance matrix for a set of coordinates.
-        Only returns upper triangle of matrix as a csr sparse matrix.
-        :param molecule: a molecular structure
-        :type molecule: Molecule
-        :return: distance matrix
-        :rtype: scipy.sparse._csr_csr_matrix
+        A method to calculate the distance matrix of a given molecule structure.
+
+        Parameters
+        ----------
+        molecule : Molecule
+            a molecule object
+        Returns
+        -------
+        dist_mat : scipy.sparse._csr_csr_matrix
+            upper triangular distance matrix stored in sparse format (see scipy docs).
+            To convert to a numpy.ndarray use the method `dist_mat.toarray()`.
         """
         dist_mat = dok_matrix((molecule.natoms, molecule.natoms), dtype=np.float64)  # more efficient for building mat
         for i in range(molecule.natoms):
@@ -284,28 +284,44 @@ class Molecule:
     @staticmethod
     def bond_length(molecule, bond_connectivity: list) -> float:
         """
-        Calculate bond length between two atoms
-        :param molecule: a molecule structure
-        :type molecule: Molecule
-        :param bond_connectivity: connectivity of two bonds in coordinate array
-        :type bond_connectivity: list
-        :return: bond length
-        :rtype: numpy.float64
+        A method to calculate the bond length between a pair of atoms in the molecule.
+
+        Parameters
+        ----------
+        molecule : Molecule
+            a molecular structure containing the cartesian coordinate matrix
+        bond_connectivity : list
+            a list that contains the indexes of the pairs of atoms in the coordinate matrix.
+            `len(bond_connectivity) == 2`
+
+        Returns
+        -------
+        bond_len : float
+            value of the bond length in angstrom
         """
         rvec = molecule.coordinates[bond_connectivity[0], :] - molecule.coordinates[bond_connectivity[1], :]
-        return np.linalg.norm(rvec)
+        bond_len = np.linalg.norm(rvec)
+        return bond_len
 
     @staticmethod
     def angle(molecule, angle_connectivity: list) -> float:
         """
-        Caclulates angle between two bond lengths r_ij and r_kj where atom j is central
-        :param molecule: a molecule structure
-        :type molecule: Molecule
-        :param angle_connectivity: Connectivity of atoms (i, j, k) that form an angle
-        :type angle_connectivity: list
-        :return: angle between atoms r_ij and r_kj in degrees
-        :rtype: float
+        A method to calculate the angle between a pair of bond lengths R_ij and R_kj.
+
+        Parameters
+        ----------
+        molecule : Molecule
+            a molecular structure containing cartesian coordinates
+        angle_connectivity : list
+            list that contains the indexes of the atoms that make up the angle.
+            `len(angle_connectivity) = 3`, where the second index is the central atom i.e. j
+
+        Returns
+        -------
+        theta : float
+            the bond angle in degrees
         """
+
         if len(angle_connectivity) != 3 or molecule.natoms < 3:
             raise AngleDefError
         i, j, k = angle_connectivity
@@ -320,13 +336,21 @@ class Molecule:
     @staticmethod
     def dihedral(molecule, dihedral_connectivity: list) -> float:
         """
-        Method to calculate a dihedral angle between two bond lengths that form a plane
-        :param molecule: a molecular structure
-        :type molecule: Molecule
-        :param dihedral_connectivity: Connectivity of atoms that form a dihedral angle (i, j, k, l)
-        :type dihedral_connectivity: list
-        :return: dihedral angle (phi) in degrees
-        :rtype: float
+        A method to calculate the dihedral angle between two bond lengths that form a plane.
+
+        Parameters
+        ----------
+        molecule : Molecule
+            a molecule structure containing cartesian coordinates
+        dihedral_connectivity : list
+            connectivity of the atoms that form the dihedral angle (i, j, k, l).
+            `len(dihedral_connectivity) = 4`
+
+        Returns
+        -------
+        phi: float
+            dihedral angle in degrees
+
         """
         if len(dihedral_connectivity) != 4 or molecule.natoms < 4:
             raise DihedralDefError
@@ -351,10 +375,18 @@ class Molecule:
 
     def calculate_internal_coords(self):
         """
-        A method that calculates all possible internal coordinates
-        (bond distances, angles, and dihedrals) as well as their connectivity.
-        :return: Internal coordinates object containing bonds, angles and dihedrals + their connectivities
-        :rtype: InternalCoordinates
+        A method to calculate *all* internal coordinates that describe the molecular structure.
+        If the user is only interested in a selection of internal coordinates, for example one bond length or angle etc.,
+        it is recommended to call the `bond_length`, `angle` or `dihedral` methods directly by specifying the atom
+        connectivity.
+
+        Returns
+        -------
+        internal_coords: InternalCoordinates
+            a set of internal coordinates described by an InternalCoordinates object. This contains
+            an attribute for each IC and the list of connectivities for each. In the case that of di- and tri-atomic
+            molecules that have no defined angle or dihedral, those instance variables will be empty.
+
         """
         bond_lengths, angles, dihedrals = [], [], []
         bond_connectivities, angle_connectivities, dihedral_connectivities = [], [], []
@@ -397,7 +429,14 @@ class Molecule:
 
 class Vibration(Molecule):
     """
-    Class to represent vibrational modes of a molecule structure - subclass of Molecule
+    Class to represent vibrational modes of a molecule structure. Inherets properties and methods of Molecule.
+    Stores information on normal modes, frequencies and the reference molecular structure.
+    Is instantiated as `Vibration(fpath)` from a molden file path containing a frequencey calculation performed using
+    the electronic structure code of choice.
+
+    This class is typically used in normal mode analysis (see module `normal_mode_analysis` and example scripts
+    `single_traj_nma.py`/ `ensemble_nma.py`). One can define a reference vibrational structure to project
+    a trajectory or an ensemble of trajectories onto.
 
     Attributes
     ----------
@@ -407,23 +446,9 @@ class Vibration(Molecule):
         Number of vibrational frequencies
     self.modes : nump.ndarray
         vectors of each of the normal mode frequencies
-
-    + All attributes inherited from Molecule class
-
-    Methods
-    _______
-
-    Static Methods
-    --------------
-    read_molden(fname: str)
     """
 
     def __init__(self, fpath: str):
-        """
-        Constructor for Vibration object - loads vibrational information from molden format
-        :param fpath: path to molden file
-        :type fpath: str
-        """
         # init via molden reader - returns atoms, labels and freqs - init Molecule type and additional Vib instances
         molden_out = self.read_molden(fpath)
         Molecule.__init__(self, molden_out[0], molden_out[1])
@@ -437,11 +462,22 @@ class Vibration(Molecule):
     @staticmethod
     def read_molden(fname: str) -> tuple[list, npt.NDArray, npt.NDArray, npt.NDArray]:
         """
-        A method reads vibrational information from molden files - overrides  method in Molecule parent class
-        :param fname: name of molden file to load coordinate and frequency information from
-        :type fname: str
-        :return: atomic labels, cartesian coordinates, frequencies (cm^-1) and normal mode coordinates
-        :rtype: tuple
+        A method to read coordinates, frequencies and normal modes from a molden files.
+        Parameters
+        ----------
+        fname : str
+            absolute path to molden file
+
+        Returns
+        -------
+        labels : list
+            a list of atom labels for each entry in the reference structures cartesian coordinate matrix
+        atoms : numpy.ndarray
+            array of coordinates for each atom in the reference structure
+        freqs : numpy.ndarray
+            the values of the frequencies of each mode in cm^-1
+        vibs : numpy.ndarray
+            the normal modes of each of the frequencies in contained in `freqs`
         """
         ftype = fname.split('.')[-1]
         if ftype != 'molden':
@@ -502,30 +538,37 @@ class Vibration(Molecule):
 
 class InternalCoordinates:
     """
-    Class to structure all internal coordinates of a molecule
+    Class to structure all internal coordinates of a molecule/ trajectory. Typically, only used within the framework of
+    calculate *all* internal coordinates. One can access for example, only the bond lengths, with the property
+    `instance_name.bonds`, allowing the user to distinguish between the different internal coordinates generated with ease.
+
+    This class is called in both the `Trajectory` and `Molecule` internal coordinate routines. In the event that
+    one calls `trajectory.calculate_internal_coords()` the bond lengths/ angles/ dihedrals will be type numpy.ndarray
+    with dimensions [traj.nts, number of lengths/ angles]. In the event `molecule.calulcate_internal_coords()` is invoked,
+    the numpy.ndarray is 1D. Atom connectivities are always returned as a list of lists.
 
     Attributes:
     -----------
-    self.bonds: list
+    self.bonds: numpy.ndarray
         list of all bond lengths in angstroms
     self.bond_connectivity: list
         list of each present bond lengths atomic connectivity
-    self.angles: list
+    self.angles: numpy.ndarray
         list of all angles in degrees
     self.angle_connectivity: list
         list of all present angles atomic connectivity
-    self.dihedrals: list
+    self.dihedrals: numpy.ndarray
         list of all dihedral angles in degrees
     self.dihedral_connectivity: list
         list of all present dihedral angles connectivity
     """
 
     def __init__(self, bonds, bond_connectivity, angles, angle_connectivity, dihedrals, dihedral_connectivity):
-        self.bonds = bonds
+        self.bonds = np.array(bonds)
         self.bond_connectivity = bond_connectivity
-        self.angles = angles
+        self.angles = np.array(angles)
         self.angle_connectivity = angle_connectivity
-        self.dihedrals = dihedrals
+        self.dihedrals = np.array(dihedrals)
         self.dihedral_connectivity = dihedral_connectivity
 
 

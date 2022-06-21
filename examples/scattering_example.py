@@ -11,9 +11,13 @@ qmax, Nq = 5, 400
 qvec = np.linspace(0, qmax, Nq)
 
 [FF, fq] = scat.IAM_form_factors(cs2, qvec)
+I_xray = scat.IAM_molecular_scattering(cs2, qvec, fq, FF)
 
+[FF, fq] = scat.IAM_form_factors(cs2, qvec, ELEC=True)
+I_elec = scat.IAM_molecular_scattering(cs2, qvec, fq, FF, Elec=True)
+fig = plt.figure()
+plt.plt(qvec, I_xray, qvec, I_elec)
 
-I = scat.IAM_molecular_scattering(cs2, qvec, fq, FF)
 
 print('Done single molecule scattering')
 

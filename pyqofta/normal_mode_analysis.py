@@ -36,13 +36,23 @@ class EnsembleTypeError(TypeError):
 
 def normal_mode_matrix(vibrational_structure, mass_weight=False) -> npt.NDArray:
     """
-    A function to calculate the pseudo inverse of the square matrix (nfreqs, 3*natom) that
-    defines the collective normal modes. Can be optionally mass weighted.
-    :param vibrational_structure: an instance of Vibration containing the required frequencies and vibrational mode coordinates
-    :param mass_weight: flag to mass weight the normal modes
-    :type mass_weight: bool
-    :return: normal mode matrix - rows define the modes and columns the atom coordinates
-    :rtype: numpy.ndarray
+    A function to calculate the pseudo inverse of the square matrix [nfreqs, 3*natom] that
+    defines the collective normal modes. Can be optionally mass weighted. Requires an instance of `Vibration`.
+
+    Parameters
+    ----------
+
+    vibrational_structure : Vibration
+        a reference structure of vibration type which contains normal mode and frequencey information to project onto
+    mass_weight : Bool
+        a flag to allow for mass weighting of normal modes (default = False)
+
+    Returns
+    -------
+
+    nm_mat : numpy.ndarray
+        normal mode matrix - rows define normal modes and columns the atom coordinates - dimensions [nfreqs, 3*natom]
+
     """
     if not isinstance(vibrational_structure, Vibration):
         raise VibrationalTypeError('An instance of Vibration is required to calculate the normal mode matrix')
@@ -58,15 +68,23 @@ def normal_mode_matrix(vibrational_structure, mass_weight=False) -> npt.NDArray:
 def normal_mode_transform(molecule, ref_structure, mass_weighted=False) -> npt.NDArray:
     """
     A function to transform a given molecule onto a set of normal modes of a reference structure.
-    By default the coordinates are not mass weighted.
-    :param molecule: an instance of Molecule containing the coordinates which are to be tranformed
-    :type molecule: Molecule
-    :param ref_structure: an instance of Vibration containing the set of normal modes onto which the molecule is projected
-    :type ref_structure: Vibration
-    :param mass_weighted: a flag to toggle if the coordinates are mass weight (default = False)
-    :type mass_weighted: Bool
-    :return: molecule projected into normal modes of reference Vibration (should be nfreqs of these)
-    :rtype: numpy.ndarray
+    By default the coordinates are not mass weighted. Requires a `Molecule` and `Vibration` instance.
+
+    Parameters
+    ----------
+
+    molecule : Molecule
+        the molecule structure to project into normal mode coordinates from cartesian
+    ref_structure : Vibration
+        the reference structure containing normal mode information to project `molecule` onto
+    mass_weighted : Bool
+        allows for mass weighting (default = False)
+
+    Returns
+    -------
+
+    norm_mode_coords: numpy.ndarray
+        the input `molecule` transformed into normal mode basis wrt `ref_structure`
     """
     if not isinstance(molecule, Molecule):
         raise MoleculeTypeError('An instance of Molecule is required for the normal mode transform')
@@ -83,18 +101,34 @@ def nma_traj(trajectory, ref_structure, time_intervals: list) -> tuple[npt.NDArr
     A method for trajectory normal mode analysis. Calculates the average of the normal mode coordinates over
     a number of time intervals specified. Also calculates the standard deviation of these modes within the intervals.
     This gives an indicator of how active a given normal mode is within the trajectory.
-    :param time_intervals: a series of time intervals - can just be the whole of time, or can specify a more informed
-    selection of intervals that reflect the period of a vibration.
-    :type time_intervals: list
-    :return: average of the normal mode coordinates and the standard deviation over the set of time intervals
-    :rtype: numpy.ndarray
+
+    Parameters
+    ----------
+
+    trajectory : Trajectory
+        the trajectory to perform nma on
+    ref_structure : Vibration
+        reference structure with freq/ normal mode information to project each timestep in `trajectory` onto
+    time_intervals : list
+        a series of time intervals - can just be the whole of time, or can specify a more informed
+        selection of intervals that reflect the period of a vibration.
+
+
+    Returns
+    -------
+
+    interval_avg: numpy.ndarray
+        average of normal mode coordinates within the set of `time_intervals` provided
+    interval_std: numpy.ndarray
+        standard deviation on the average over the set of `time intervals`
+
     """
     if not isinstance(trajectory, Trajectory):
         raise TrajectoryTypeError('Normal mode analysis over a trajectory requires an instance of Trajectory')
     if not isinstance(ref_structure, Vibration):
         raise VibrationalTypeError('An instance of Vibration containing reference normal modes is required to project the trajectory onto')
 
-    normal_mode_trajectory = Trajectory.broadcast(normal_mode_transform, trajectory, ref_structure)
+    normal_mode_trajectory = trajectory.broadcast(normal_mode_transform, ref_structure)
     normal_mode_trajectory = np.array(list(normal_mode_trajectory)) # convert from map obj to array of nm coords
 
     ntints = len(time_intervals)
@@ -122,14 +156,25 @@ def nma_ensemble(ensemble, ref_structure, time_intervals: list):
     and thus only includes coherent motion. The standard deviation on this average gives an idea of how active
     each normal mode is in the dynamics. Time intervals can be provided to perform analysis over each of these independent
     intervals in time - useful if there is some periodicity.
-    :param ensemble: an ensemble of trajectories
-    :type ensemble: Ensemble
-    :param ref_structure: a reference structure containing normal mode and freq information
-    :type ref_structure: Vibration
-    :param time_intervals: intervals in time over which to perform analysis
-    :type time_intervals: list (of lists)
-    :return: average normal modes and standard deviation over all time, and the average + std. dev. in each time interval
-    :rtype: numpy.ndarray
+
+    Parameters
+    ----------
+
+    ensemble : Ensemble
+        an ensemble of trajectories to perform nma on
+    ref_structure : Vibration
+       reference structure with freq/ normal mode information to project each timestep within each trajectory onto
+    time_intervals : list
+        a series of time intervals - can just be the whole of time, or can specify a more informed
+        selection of intervals that reflect the period of a vibration.
+
+    Returns
+    -------
+    avg_nm : numpy.ndarray
+        the average trajectories normal mode coordinates
+    ensemble_std: numpy.ndarray
+        standard deviation on the average trajectory in normal mode basis
+
     """
     if not isinstance(ensemble, Ensemble):
         raise EnsembleTypeError('Normal mode analysis over a ensemble of trajectories requires an instance of Ensemble')
@@ -139,7 +184,7 @@ def nma_ensemble(ensemble, ref_structure, time_intervals: list):
     nm_sum, nmsq_sum = np.zeros((ensemble.nts_max, ref_structure.nfreqs)), np.zeros((ensemble.nts_max, ref_structure.nfreqs))
     time_count = np.zeros(ensemble.nts_max, dtype=np.int64)
     for tbf in ensemble:
-        nm_tbf = Trajectory.broadcast(normal_mode_transform, tbf, ref_structure)
+        nm_tbf = tbf.broadcast(normal_mode_transform, ref_structure)
         nm_tbf = np.array(list(nm_tbf))
         nm_sum += nm_tbf
         nmsq_sum += nm_tbf**2  # TODO: ENSURE WORKS FOR TRAJS WITH DIFFERENT NTS
@@ -157,12 +202,25 @@ def nma_ensemble(ensemble, ref_structure, time_intervals: list):
     return avg_nm, ensemble_std
 
 
-def nm_analysis(obj, ref_structure, time_intervals):
+def nm_analysis(obj, ref_structure, time_intervals: list):
     """
-    A wrapper for nma_traj and nma_ensemble functions.
-    Will either return ensemble analysis on the average trajectory or individual trajectory based analysis,
-    depending on the type of the input object.
-    See documention for each of these functions for more information.
+    A wrapper for `nma_ensemble` and `nma_traj` - will call the relevent function depending on the input type of `obj`.
+    See the documentation of these functions for more information.
+
+    Parameters
+    ----------
+    obj : Trajectory or Ensemble
+        either the trajectory or ensemble structure
+    ref_structure : Vibration
+        the reference structure with normal mode information
+    time_intervals : list
+        a series of time intervals - can just be the whole of time, or can specify a more informed
+        selection of intervals that reflect the period of a vibration.
+
+    Returns
+    -------
+    The return values of `nma_ensemble` or `nma_traj` - case dependent.
+
     """
     # TODO: ADD CENTRE OF MASS OPTION
     if isinstance(obj, Ensemble):
