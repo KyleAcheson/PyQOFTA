@@ -49,9 +49,6 @@ for i in range(sh_ensemble.ntrajs):
     Iavg += Iens[:, i, :]
 Iavg = Iavg / sh_ensemble.tcount[:, np.newaxis] # ACCOUNT FOR FACT TRAJS MIGHT NOT HAVE EQUAL LENGTH IN TIME
 
-# ACTUALLY HERE TRAJS ARE EQUAL LENGTH SO INSTEAD OF THE ABOVE ONE COULD DO:
-# Iavg = np.sum(Iens, axis=1) / sh_ensemble.ntrajs
-
 pdw_avg = np.zeros((sh_ensemble.nts_max, Nq), dtype=float)
 for i in range(sh_ensemble.nts_max):
     pdw_avg[i, :] = (Iavg[i, :] - Iavg[0, :])/ Iavg[0, :] # PERCENTAGE DIFFERENCE (Ion-Ioff/ Ioff) AGAIN BUT FOR AVERAGE OF ENSEMBLE

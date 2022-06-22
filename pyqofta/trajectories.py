@@ -357,6 +357,26 @@ class TrajectorySH(Trajectory):
         return geometries, time
 
 
+    def Kabsch_rmsd(self, reference_structure):
+        """
+        Calculates the molecule RMSD via the Kabsch algorithm for a whole trajectory wrt some reference_structure.
+        This reference structure is typically chosen to be an important representative structure that corresponds to
+        a conical intersection, some minima or the time-zero structure.
+
+        Parameters
+        ----------
+        reference_structure : Molecule
+            a structure to take the RMSD wrt to
+
+        Returns
+        -------
+        trj_rmsd: numpy.ndarray
+            a vector containing the RMSD over time
+        """
+        trj_rmsd = self.broadcast(mol.Molecule.Kabsch_rmsd, reference_structure)
+        return np.array(list(trj_rmsd))
+
+
 
 class TrajectoryIterator:
 

@@ -15,12 +15,17 @@ If an atom required is not parameterised, you may add it to the dictionary in th
 import numpy as np
 import numpy.typing as npt
 from scipy.sparse import csr_matrix, triu, dok_matrix
+from scipy.spatial.transform import Rotation
 
 __all__ = [
     'Molecule',
     'Vibration',
     'InternalCoordinates',
 ]
+
+class MoleculeTypeError(TypeError):
+    def __init__(self, msg='Requires a Molecule object', *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
 
 class AngleDefError(ValueError):
     def __init__(self, msg='Angles are defined between three atoms', *args, **kwargs):
@@ -424,6 +429,49 @@ class Molecule:
                                    angle_connectivities,
                                    dihedrals,
                                    dihedral_connectivities)
+
+    @staticmethod
+    def Kabsch_rmsd(molecule, referance_structure):
+        """
+        A method to calculate the minimum RMSD between two geometries through the Kabsch algorithm.
+        This works by calculating the centroid of each vector X (i.e. `sum(x)/ len(x)`) and aligning the two
+        geometries. Then one calculating the covariance matrix of the two centred structures, this is used
+        to calculate the rotation matrix that minimises the rmsd through a procedure based on single value decomposition.
+
+        Parameters
+        ----------
+        referance_structure : Molecule
+            the seconnd molecule to with which the RMSD is calculated wrt the instance of the molecule objecy
+
+        Returns
+        -------
+        lrms: float
+            the lowest possible RMSD between the structures (after rotation and translation)
+        """
+
+        if not isinstance(referance_structure, Molecule):
+            raise MoleculeTypeError('Kabsch algorithm requires the reference to be another molecular structure')
+        if molecule.natoms != referance_structure.natoms:
+            raise MoleculeTypeError('The two molecules must have the same dimensions')
+        nc = np.shape(molecule.coordinates)[1]
+        p0 = np.sum(molecule.coordinates, axis=0)/molecule.natoms
+        q0 = np.sum(referance_structure.coordinates, axis=0)/referance_structure.natoms
+        geom1 = molecule.coordinates - p0
+        geom2 = referance_structure.coordinates - q0 # translate coords to align centroid w origin
+        cov = np.transpose(geom1) @ geom2 # calculate covariance matrix
+        v, s, wh = np.linalg.svd(cov) # do single value decomp. on covariance matrix
+        w = wh.T
+        w = np.squeeze(w)
+        v = np.squeeze(v)
+        eye = np.eye(nc) # init identity matrix
+        if np.linalg.det(w @ np.transpose(v)) < 0:
+            eye[nc - 1, nc - 1] = -1
+        u = w @ eye @ np.transpose(v) # rotation matrix that minimises the rmsd
+        for i in range(molecule.natoms):
+            geom1[i, :] = u @ geom1[i, :]
+        diff = geom1 - geom2
+        lrms = np.sqrt((np.sum(diff**2))/ molecule.natoms)
+        return float(lrms)
 
 
 

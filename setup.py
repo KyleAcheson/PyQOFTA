@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name = 'pyqofta',
 
-    version = '0.0.0',
+    version = '0.1.0',
 
     description = 'A python package for clustering quantum dynamcis simulations and reconstructing experimental observables',
 
