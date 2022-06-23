@@ -17,5 +17,4 @@ rmsd = trajectory.Kabsch_rmsd(ref_mol)
 
 plt.plot(trajectory.time, rmsd)
 
-
 print('done')
