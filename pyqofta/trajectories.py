@@ -137,6 +137,16 @@ class Ensemble:
 
         return trajs, max_time, tcount
 
+
+    def average_(self):
+        averaged_ensemble = np.zeros((self.trajs[0].natoms, self.nts_max))
+        for trj in self:
+            for ts, mol in enumerate(trj):
+                averaged_ensemble[:, ts] += mol.coordinates
+        averaged_ensemble /= self.tcount
+        return averaged_ensemble
+
+
     def broadcast(self, func, *args):
         """
         Broadcast a general function over the instance of `Ensemble`
