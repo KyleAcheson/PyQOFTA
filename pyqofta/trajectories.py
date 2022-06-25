@@ -139,12 +139,23 @@ class Ensemble:
 
 
     def average_(self):
-        averaged_ensemble = np.zeros((self.trajs[0].natoms, self.nts_max))
+        """
+        Compute the average trajectory of the whole ensemble.
+
+        Returns
+        -------
+        avg_traj: list
+            a list of `Molecule` objects containing the average molecules within the whole ensemble
+        """
+        averaged_ensemble = np.zeros((self.trajs[0].geometries[0].natoms, 3, self.nts_max))
         for trj in self:
-            for ts, mol in enumerate(trj):
-                averaged_ensemble[:, ts] += mol.coordinates
+            for ts, molc in enumerate(trj):
+                averaged_ensemble[:, :, ts] += molc.coordinates
         averaged_ensemble /= self.tcount
-        return averaged_ensemble
+        avg_traj = []
+        for ts in range(self.nts_max):
+            avg_traj.append(mol.Molecule(self.trajs[0].geometries[0].atom_labels, averaged_ensemble[:, :, ts]))
+        return avg_traj
 
 
     def broadcast(self, func, *args):
