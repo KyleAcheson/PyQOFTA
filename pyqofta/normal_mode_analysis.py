@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 from pyqofta.molecules import Molecule, Vibration
-from pyqofta.trajectories import Ensemble, Trajectory
+from pyqofta.trajectories import Ensemble, Trajectory, TrajectorySH
 
 '''
 Author: Kyle Acheson
@@ -34,7 +34,7 @@ class EnsembleTypeError(TypeError):
 
 
 
-def normal_mode_matrix(vibrational_structure, mass_weight=False) -> npt.NDArray:
+def normal_mode_matrix(vibrational_structure, mass_weight=True) -> npt.NDArray:
     """
     A function to calculate the pseudo inverse of the square matrix [nfreqs, 3*natom] that
     defines the collective normal modes. Can be optionally mass weighted. Requires an instance of `Vibration`.
@@ -45,7 +45,7 @@ def normal_mode_matrix(vibrational_structure, mass_weight=False) -> npt.NDArray:
     vibrational_structure : Vibration
         a reference structure of vibration type which contains normal mode and frequencey information to project onto
     mass_weight : Bool
-        a flag to allow for mass weighting of normal modes (default = False)
+        a flag to allow for mass weighting of normal modes (default = True)
 
     Returns
     -------
@@ -65,7 +65,7 @@ def normal_mode_matrix(vibrational_structure, mass_weight=False) -> npt.NDArray:
     return nm_mat
 
 
-def normal_mode_transform(molecule, ref_structure, mass_weighted=False) -> npt.NDArray:
+def normal_mode_transform(molecule, ref_structure, mass_weighted=True) -> npt.NDArray:
     """
     A function to transform a given molecule onto a set of normal modes of a reference structure.
     By default the coordinates are not mass weighted. Requires a `Molecule` and `Vibration` instance.
@@ -78,7 +78,7 @@ def normal_mode_transform(molecule, ref_structure, mass_weighted=False) -> npt.N
     ref_structure : Vibration
         the reference structure containing normal mode information to project `molecule` onto
     mass_weighted : Bool
-        allows for mass weighting (default = False)
+        allows for mass weighting (default = True)
 
     Returns
     -------
@@ -91,7 +91,15 @@ def normal_mode_transform(molecule, ref_structure, mass_weighted=False) -> npt.N
     if not isinstance(ref_structure, Vibration):
         raise VibrationalTypeError('An instance of Vibration is required to project the molecule onto')
     norm_mode_mat = normal_mode_matrix(ref_structure, mass_weighted)
-    displacement_vec = molecule.coordinates.flatten() - ref_structure.coordinates.flatten()
+    #if centre_mass:
+    #    mcmass = molecule.centre_of_mass()
+    #    rcmass = ref_structure.centre_of_mass()
+    #    mcoords = molecule.coordinates - mcmass
+    #    rcoords = ref_structure.coordinates - rcmass
+    #else:
+    mcoords = molecule.coordinates
+    rcoords = ref_structure.coordinates
+    displacement_vec = mcoords.flatten() - rcoords.flatten()
     normal_mode_coords = np.dot(displacement_vec, norm_mode_mat)
     return normal_mode_coords
 
@@ -231,3 +239,11 @@ def nm_analysis(obj, ref_structure, time_intervals: list):
         return interval_avg, interval_std
     else:
         raise TypeError('Normal mode analysis can only be conducted on a trajectory or ensemble')
+
+
+if __name__ == "__main__":
+    traj_path = '/Users/kyleacheson/PycharmProjects/PyQOFTA/data/Trajectories/CS2/diss/TRAJ_00010/output.xyz'
+    traj = TrajectorySH.init_from_xyz(traj_path)
+    ref_structure = Vibration('/Users/kyleacheson/PycharmProjects/PyQOFTA/data/Freq/cs2.molden')
+    [int_avg, int_std] = nma_traj(traj, ref_structure, [[0, 1000]])
+    print('done')

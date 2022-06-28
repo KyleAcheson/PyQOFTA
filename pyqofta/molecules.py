@@ -15,7 +15,6 @@ If an atom required is not parameterised, you may add it to the dictionary in th
 import numpy as np
 import numpy.typing as npt
 from scipy.sparse import csr_matrix, triu, dok_matrix
-from scipy.spatial.transform import Rotation
 
 __all__ = [
     'Molecule',
@@ -365,7 +364,21 @@ class Molecule:
             phi += 360.0
         return phi
 
-    # TODO: ADD COM METHOD TO CENTRE MOLECULE AT COM
+    def centre_of_mass(self):
+        """
+        A function to calculate the centre of mass in cartesian space. Take away the resulting vector
+        from a molecule to shift the origin to the centre of mass.
+
+        Returns
+        -------
+        centre_mass: numpy.ndarray
+            centre of mass in cartesian coordinates
+        """
+        tot = np.zeros((1, 3))
+        for i in range(self.natoms):
+            tot = tot + self.Zs[i] * self.coordinates[i, :]
+        centre_mass = tot / np.sum(self.Zs)
+        return centre_mass
 
     def calculate_internal_coords(self):
         """
@@ -444,6 +457,7 @@ class Molecule:
             raise MoleculeTypeError('The two molecules must have the same dimensions')
         if not Hydrogens:
             molecule, referance_structure = Molecule.__remove_hydrogens(molecule, referance_structure)
+            print(molecule)
         nc = np.shape(molecule.coordinates)[1]
         p0 = np.sum(molecule.coordinates, axis=0)/molecule.natoms
         q0 = np.sum(referance_structure.coordinates, axis=0)/referance_structure.natoms
@@ -467,13 +481,13 @@ class Molecule:
     @staticmethod
     def __remove_hydrogens(mol1, mol2):
         mol_a, mol_b, labels_a, labels_b = [], [], [], []
-        for i in range(mol1.natoms)
-            if mol1.atom_labels != 'H':
+        for i in range(mol1.natoms):
+            if mol1.atom_labels[i] != 'H':
                 mol_a.append(mol1.coordinates[i, :])
-                labels_a.append(mol1.atom_labels[i, :])
-            if mol2.atom_labels != 'H':
+                labels_a.append(mol1.atom_labels[i])
+            if mol2.atom_labels[i] != 'H':
                 mol_b.append(mol2.coordinates[i, :])
-                labels_b.append(mol2.atom_labels[i, :])
+                labels_b.append(mol2.atom_labels[i])
             else:
                 pass
         new_mol_a = Molecule(labels_a, np.array(mol_a))
@@ -673,7 +687,20 @@ class MoleculeIterator:
 
 if __name__ == "__main__":
     # some testing stuff
-    mol = Molecule.init_from_xyz('../data/Molecules/methane.xyz')
+    import pyqofta.trajectories as trj
+    import matplotlib.pyplot as plt
+    import os
+    from natsort import natsorted
+    traj_parent_dir = '/users/kyleacheson/CHD_TRAJS/'
+    traj_paths = natsorted([traj_parent_dir + fpath for fpath in os.listdir(traj_parent_dir) if 'xyz' in fpath])  # list and sort all files numerically
+    ensemble = trj.Ensemble.load_ensemble(traj_paths, 'sh')
+
+    traj = ensemble.trajs[0]
+    mol = traj.geometries[0]
+
+    #rmsd_h = traj.Kabsch_rmsd(mol)
+    rmsd_noh = traj.Kabsch_rmsd(mol, Hydrogens=False)
+
 
     print('done')
 

@@ -155,7 +155,7 @@ class Ensemble:
             avg_traj_list.append(mol.Molecule(self.trajs[0].geometries[0].atom_labels, averaged_ensemble[:, :, ts]))
 
         traj_type = type(self.trajs[0])
-        dt = self.trajs.dt
+        dt = self.trajs[0].dt
         tvec = np.arange(0, self.nts_max+dt, dt)
         if traj_type == TrajectorySH:
             avg_traj = TrajectorySH(avg_traj_list, tvec)

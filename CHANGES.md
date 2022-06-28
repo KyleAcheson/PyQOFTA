@@ -14,4 +14,5 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - The `Ensemble` class can now be instantiated from a list of trajectory objects and the maximum number of time steps the trajectories are run for.
 - To instantiate an instant of `Ensemble` from file, one now has to use the class method `load_ensemble` which takes a list of file paths and the trajectory type
 - Added a static method `freq2time` to `Vibration` class - allows one to convert a vibrational freq in cm^-1 to a time period in fs.
+- Added `centre_of_mass` to `Molecule` which returns the centre of mass in cartesian coordinate space
 
