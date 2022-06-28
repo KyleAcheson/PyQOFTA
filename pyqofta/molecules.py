@@ -95,6 +95,9 @@ class Molecule:
     def __repr__(self):
         return f"Molecule({self._atom_labels}, {self.natoms}, {self.nelecs}, {self.Zs}, {self._coordinates.__repr__()}, {self._momenta})"
 
+    def __iter__(self):
+        return MoleculeIterator(self)
+
 
     @property
     def coordinates(self):
@@ -263,38 +266,30 @@ class Molecule:
         atoms = np.array(atoms)
         return labels, atoms
 
-    @staticmethod
-    def distance_matrix(molecule):
+    def distance_matrix(self):
         """
-        A method to calculate the distance matrix of a given molecule structure.
+        A method to calculate the distance matrix of a given structure.
 
-        Parameters
-        ----------
-        molecule : Molecule
-            a molecule object
         Returns
         -------
         dist_mat : scipy.sparse._csr_csr_matrix
             upper triangular distance matrix stored in sparse format (see scipy docs).
             To convert to a numpy.ndarray use the method `dist_mat.toarray()`.
         """
-        dist_mat = dok_matrix((molecule.natoms, molecule.natoms), dtype=np.float64)  # more efficient for building mat
-        for i in range(molecule.natoms):
-            for j in range(i + 1, molecule.natoms):
-                rvec = molecule.coordinates[i, :] - molecule.coordinates[j, :]
+        dist_mat = dok_matrix((self.natoms, self.natoms), dtype=np.float64)  # more efficient for building mat
+        for i in range(self.natoms):
+            for j in range(i + 1, self.natoms):
+                rvec = self.coordinates[i, :] - self.coordinates[j, :]
                 dist_mat[i, j] = np.linalg.norm(rvec)
         dist_mat = triu(dist_mat, format='csr')  # convert to upper triangle matrix
         return dist_mat
 
-    @staticmethod
-    def bond_length(molecule, bond_connectivity: list) -> float:
+    def bond_length(self, bond_connectivity: list) -> float:
         """
-        A method to calculate the bond length between a pair of atoms in the molecule.
+        A method to calculate the bond length between a pair of atoms in the self.
 
         Parameters
         ----------
-        molecule : Molecule
-            a molecular structure containing the cartesian coordinate matrix
         bond_connectivity : list
             a list that contains the indexes of the pairs of atoms in the coordinate matrix.
             `len(bond_connectivity) == 2`
@@ -304,19 +299,16 @@ class Molecule:
         bond_len : float
             value of the bond length in angstrom
         """
-        rvec = molecule.coordinates[bond_connectivity[0], :] - molecule.coordinates[bond_connectivity[1], :]
+        rvec = self.coordinates[bond_connectivity[0], :] - self.coordinates[bond_connectivity[1], :]
         bond_len = np.linalg.norm(rvec)
         return bond_len
 
-    @staticmethod
-    def angle(molecule, angle_connectivity: list) -> float:
+    def angle(self, angle_connectivity: list) -> float:
         """
         A method to calculate the angle between a pair of bond lengths R_ij and R_kj.
 
         Parameters
         ----------
-        molecule : Molecule
-            a molecular structure containing cartesian coordinates
         angle_connectivity : list
             list that contains the indexes of the atoms that make up the angle.
             `len(angle_connectivity) = 3`, where the second index is the central atom i.e. j
@@ -327,26 +319,23 @@ class Molecule:
             the bond angle in degrees
         """
 
-        if len(angle_connectivity) != 3 or molecule.natoms < 3:
+        if len(angle_connectivity) != 3 or self.natoms < 3:
             raise AngleDefError
         i, j, k = angle_connectivity
-        r_ij = molecule.coordinates[i, :] - molecule.coordinates[j, :]
-        r_kj = molecule.coordinates[k, :] - molecule.coordinates[j, :]
+        r_ij = self.coordinates[i, :] - self.coordinates[j, :]
+        r_kj = self.coordinates[k, :] - self.coordinates[j, :]
         cosine_theta = np.dot(r_ij, r_kj)
         sin_theta = np.linalg.norm(np.cross(r_ij, r_kj))
         theta = np.arctan2(sin_theta, cosine_theta)
         theta = 180.0 * theta / np.pi
         return theta
 
-    @staticmethod
-    def dihedral(molecule, dihedral_connectivity: list) -> float:
+    def dihedral(self, dihedral_connectivity: list) -> float:
         """
         A method to calculate the dihedral angle between two bond lengths that form a plane.
 
         Parameters
         ----------
-        molecule : Molecule
-            a molecule structure containing cartesian coordinates
         dihedral_connectivity : list
             connectivity of the atoms that form the dihedral angle (i, j, k, l).
             `len(dihedral_connectivity) = 4`
@@ -357,12 +346,12 @@ class Molecule:
             dihedral angle in degrees
 
         """
-        if len(dihedral_connectivity) != 4 or molecule.natoms < 4:
+        if len(dihedral_connectivity) != 4 or self.natoms < 4:
             raise DihedralDefError
         i, j, k, l = dihedral_connectivity
-        r_ji = molecule.coordinates[j, :] - molecule.coordinates[i, :]
-        r_kj = molecule.coordinates[k, :] - molecule.coordinates[j, :]
-        r_lk = molecule.coordinates[l, :] - molecule.coordinates[k, :]
+        r_ji = self.coordinates[j, :] - self.coordinates[i, :]
+        r_kj = self.coordinates[k, :] - self.coordinates[j, :]
+        r_lk = self.coordinates[l, :] - self.coordinates[k, :]
         v1 = np.cross(r_ji, r_kj)
         v1 /= np.linalg.norm(v1)
         v2 = np.cross(r_lk, r_kj)
@@ -397,30 +386,30 @@ class Molecule:
         bond_connectivities, angle_connectivities, dihedral_connectivities = [], [], []
         if self.natoms > 1: # only one bond length
             bond_connectivity = [0, 1] # first bond connecitivty = atom 0 and 1
-            r = self.bond_length(self, bond_connectivity) # get bond length for given atoms
+            r = self.bond_length(bond_connectivity) # get bond length for given atoms
             bond_lengths.append(r) # append tuple of connecitvity and bond length
             bond_connectivities.append(bond_connectivity)
         if self.natoms > 2: # two bond lengths and one angle
             bond_connectivity = [0, 2]
-            r = self.bond_length(self, bond_connectivity)
+            r = self.bond_length(bond_connectivity)
             bond_lengths.append(r)
             bond_connectivities.append(bond_connectivity)
             ang_connectivity = [2, 0, 1] # first angle is centred on atom 0 and between bonds r_01 and r_02
-            ang = self.angle(self, ang_connectivity) # get angle for given atoms
+            ang = self.angle(ang_connectivity) # get angle for given atoms
             angles.append(ang) # append tuple
             angle_connectivities.append(ang_connectivity)
         if self.natoms > 3: # n-1 bond lengths, n-2 angles and n-3 dihedrals
             for i in range(3, self.natoms):
                 bond_connectivity = [i - 3, 1]
-                r = self.bond_length(self, bond_connectivity)
+                r = self.bond_length(bond_connectivity)
                 bond_lengths.append(r)
                 bond_connectivities.append(bond_connectivity)
                 ang_connectivity = [i, i - 3, i - 2]
-                ang = self.angle(self, ang_connectivity)
+                ang = self.angle(ang_connectivity)
                 angles.append(ang)
                 angle_connectivities.append(ang_connectivity)
                 dihedral_connectivity = [i, i - 3, i - 2, i - 1] # dihedral connectivity for molecules > 3 atoms
-                dih = self.dihedral(self, dihedral_connectivity) # get dihedral
+                dih = self.dihedral(dihedral_connectivity) # get dihedral
                 dihedrals.append(dih) # append tuple
                 dihedral_connectivities.append(dihedral_connectivity)
         return InternalCoordinates(bond_lengths,
@@ -431,11 +420,11 @@ class Molecule:
                                    dihedral_connectivities)
 
     @staticmethod
-    def Kabsch_rmsd(molecule, referance_structure):
+    def Kabsch_rmsd(molecule, referance_structure, Hydrogens=True):
         """
         A method to calculate the minimum RMSD between two geometries through the Kabsch algorithm.
         This works by calculating the centroid of each vector X (i.e. `sum(x)/ len(x)`) and aligning the two
-        geometries. Then one calculating the covariance matrix of the two centred structures, this is used
+        geometries. Then by calculating the covariance matrix of the two centred structures, this is used
         to calculate the rotation matrix that minimises the rmsd through a procedure based on single value decomposition.
 
         Parameters
@@ -453,6 +442,8 @@ class Molecule:
             raise MoleculeTypeError('Kabsch algorithm requires the reference to be another molecular structure')
         if molecule.natoms != referance_structure.natoms:
             raise MoleculeTypeError('The two molecules must have the same dimensions')
+        if not Hydrogens:
+            molecule, referance_structure = Molecule.__remove_hydrogens(molecule, referance_structure)
         nc = np.shape(molecule.coordinates)[1]
         p0 = np.sum(molecule.coordinates, axis=0)/molecule.natoms
         q0 = np.sum(referance_structure.coordinates, axis=0)/referance_structure.natoms
@@ -472,6 +463,24 @@ class Molecule:
         diff = geom1 - geom2
         lrms = np.sqrt((np.sum(diff**2))/ molecule.natoms)
         return float(lrms)
+
+    @staticmethod
+    def __remove_hydrogens(mol1, mol2):
+        mol_a, mol_b, labels_a, labels_b = [], [], [], []
+        for i in range(mol1.natoms)
+            if mol1.atom_labels != 'H':
+                mol_a.append(mol1.coordinates[i, :])
+                labels_a.append(mol1.atom_labels[i, :])
+            if mol2.atom_labels != 'H':
+                mol_b.append(mol2.coordinates[i, :])
+                labels_b.append(mol2.atom_labels[i, :])
+            else:
+                pass
+        new_mol_a = Molecule(labels_a, np.array(mol_a))
+        new_mol_b = Molecule(labels_b, np.array(mol_b))
+        return new_mol_a, new_mol_b
+
+
 
 
 
@@ -574,6 +583,31 @@ class Vibration(Molecule):
         atoms = np.array(atoms)
         return (labels, atoms, freqs, vibs)
 
+    @staticmethod
+    def freq2time(freq_wavenum: float):
+        """
+        Convert a vibrational freq given in cm^-1 to a time period in fs
+
+        Parameters
+        ----------
+        freq_wavenum : float
+            vibrational freq in inverse cm
+
+        Returns
+        -------
+        time_period: float
+            period of the vibration in femtoseconds
+
+        """
+        c = 2.998e+8 # in m/s
+        lambd = 0.01 /freq_wavenum # wavelength in m
+        time_period = 1/(c/lambd) # period of vibration in time (s)
+        return time_period*1e15 # convert to fs
+
+
+
+
+
 #    def __check_freqs(self, freqs, vibs):
 #        nfreq = len(freqs)
 #        if nfreq != (3* self.natoms) and np.count_nonzero(freqs) != (3*self.natoms-5 or 3*self.natoms-6):
@@ -620,8 +654,26 @@ class InternalCoordinates:
         self.dihedral_connectivity = dihedral_connectivity
 
 
+class MoleculeIterator:
+
+    def __init__(self, molecule):
+        self._molecule = molecule
+        self._index = 0
+
+    def __next__(self):
+        if self._index < len(self._molecule.coordinates):
+            result = (self._molecule.atom_labels[self._index], self._molecule.coordinates[self._index, :])
+            self._index += 1
+            return result
+        else:
+            raise StopIteration
+
+
+
 
 if __name__ == "__main__":
     # some testing stuff
+    mol = Molecule.init_from_xyz('../data/Molecules/methane.xyz')
+
     print('done')
 

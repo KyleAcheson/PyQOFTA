@@ -16,5 +16,6 @@ ref_mol = trajectory.geometries[0] # a reference structure chosen by user
 rmsd = trajectory.Kabsch_rmsd(ref_mol)
 
 plt.plot(trajectory.time, rmsd)
+plt.show()
 
 print('done')

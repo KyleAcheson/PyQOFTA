@@ -84,19 +84,20 @@ class Ensemble:
 
     """
 
-    def __init__(self, fpaths: list, traj_type: str):
-        self.trajs, self.nts_max, self.tcount = self.load_ensemble(fpaths, traj_type)
+    def __init__(self, trajs: list, nts_max: int):
+        self.trajs = trajs
+        self.nts_max = nts_max
         self.ntrajs = len(self.trajs)
+        self.tcount = self.__get_time_count(self.trajs, self.nts_max)
         self.weights = [1.0/self.ntrajs for i in range(self.ntrajs)]
-
 
     def __iter__(self):
         return EnsembleIterator(self)
 
-    @staticmethod
-    def load_ensemble(fpaths: list, traj_type: str) -> tuple[list, int, npt.NDArray]:
+    @classmethod
+    def load_ensemble(cls, fpaths: list, traj_type: str):
         """
-        A method to load an ensemble of trajectories
+        A method to instantiate an instance of an ensemble of trajectories from files
 
         Parameters
         ----------
@@ -106,16 +107,6 @@ class Ensemble:
         traj_type : str
             type of trajectory - acceptable values are `sh, mce, aimce` (note sh only implemented currently).
             This will determine what subclass of `Trajectory` is instantiated.
-
-        Returns
-        -------
-        trajs: list
-            a list of trajectory objects
-        max_time: int
-            maximum time the trajectories run for
-        tcount: numpy.ndarray
-            a vector of length max_time with the number of trajectories present at that given time step
-            (used for averaging trajectories that have an inconsistent number of time steps)
         """
         traj_type = traj_type.lower()
         if traj_type not in acceptable_traj_type:
@@ -131,12 +122,19 @@ class Ensemble:
             else:
                 raise EnsembleTypeError(f'Trajectory type: {traj_type} is not yet implemented.')
 
+        return cls(
+            trajs=trajs,
+            nts_max=max_time
+        )
+
+
+    @staticmethod
+    def __get_time_count(trajs, max_time):
+        """ Only used to get number of trajectories available at each time step of simulation (in case not equal)"""
         tcount = np.zeros(max_time, dtype=int)
         for traj in trajs:
             tcount[:traj.nts] += 1
-
-        return trajs, max_time, tcount
-
+        return tcount
 
     def average_(self):
         """
@@ -144,17 +142,25 @@ class Ensemble:
 
         Returns
         -------
-        avg_traj: list
-            a list of `Molecule` objects containing the average molecules within the whole ensemble
+        avg_traj: Trajectory
+            an instance of a trajectory object describing the 'average' trajectory
         """
         averaged_ensemble = np.zeros((self.trajs[0].geometries[0].natoms, 3, self.nts_max))
         for trj in self:
             for ts, molc in enumerate(trj):
                 averaged_ensemble[:, :, ts] += molc.coordinates
         averaged_ensemble /= self.tcount
-        avg_traj = []
+        avg_traj_list = []
         for ts in range(self.nts_max):
-            avg_traj.append(mol.Molecule(self.trajs[0].geometries[0].atom_labels, averaged_ensemble[:, :, ts]))
+            avg_traj_list.append(mol.Molecule(self.trajs[0].geometries[0].atom_labels, averaged_ensemble[:, :, ts]))
+
+        traj_type = type(self.trajs[0])
+        dt = self.trajs.dt
+        tvec = np.arange(0, self.nts_max+dt, dt)
+        if traj_type == TrajectorySH:
+            avg_traj = TrajectorySH(avg_traj_list, tvec)
+        else:
+            raise EnsembleTypeError('Only SH currently implemented')
         return avg_traj
 
 
@@ -378,7 +384,7 @@ class TrajectorySH(Trajectory):
         return geometries, time
 
 
-    def Kabsch_rmsd(self, reference_structure):
+    def Kabsch_rmsd(self, reference_structure, Hydrogens=True):
         """
         Calculates the molecule RMSD via the Kabsch algorithm for a whole trajectory wrt some reference_structure.
         This reference structure is typically chosen to be an important representative structure that corresponds to
@@ -388,13 +394,15 @@ class TrajectorySH(Trajectory):
         ----------
         reference_structure : Molecule
             a structure to take the RMSD wrt to
+        Hydrogens: bool
+            a flag to remove hydrogens from rmsd calculate (default is set to True, i.e. they are included)
 
         Returns
         -------
         trj_rmsd: numpy.ndarray
             a vector containing the RMSD over time
         """
-        trj_rmsd = self.broadcast(mol.Molecule.Kabsch_rmsd, reference_structure)
+        trj_rmsd = self.broadcast(mol.Molecule.Kabsch_rmsd, reference_structure, Hydrogens)
         return np.array(list(trj_rmsd))
 
 
