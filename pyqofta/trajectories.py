@@ -384,7 +384,7 @@ class TrajectorySH(Trajectory):
         return geometries, time
 
 
-    def Kabsch_rmsd(self, reference_structure, Hydrogens=True):
+    def Kabsch_rmsd(self, reference_structure, Hydrogens=True, Mirror=False):
         """
         Calculates the molecule RMSD via the Kabsch algorithm for a whole trajectory wrt some reference_structure.
         This reference structure is typically chosen to be an important representative structure that corresponds to
@@ -396,13 +396,15 @@ class TrajectorySH(Trajectory):
             a structure to take the RMSD wrt to
         Hydrogens: bool
             a flag to remove hydrogens from rmsd calculate (default is set to True, i.e. they are included)
+        Mirror: bool
+            a flag to check if the two structures are mirror images of eachother
 
         Returns
         -------
         trj_rmsd: numpy.ndarray
             a vector containing the RMSD over time
         """
-        trj_rmsd = self.broadcast(mol.Molecule.Kabsch_rmsd, reference_structure, Hydrogens)
+        trj_rmsd = self.broadcast(mol.Molecule.Kabsch_rmsd, reference_structure, Hydrogens, Mirror)
         return np.array(list(trj_rmsd))
 
 

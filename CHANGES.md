@@ -16,3 +16,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Added a static method `freq2time` to `Vibration` class - allows one to convert a vibrational freq in cm^-1 to a time period in fs.
 - Added `centre_of_mass` to `Molecule` which returns the centre of mass in cartesian coordinate space
 
+## 0.3.0
+- `Kabsch_rmsd` now contains an additional flag `Mirror` to check if a mirror image is possible
+- `centre_align` method within `Molecule` returns two structures centred and rotated onto eachother
+- `remove_hydrogens` method in `Molecule` class returns a new instance of the Molecule with the hydrogens removed
+- `reflect` method in `Molecule` class changes the state of the Molecule instance and reflects it along a user specified axis
+

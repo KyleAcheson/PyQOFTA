@@ -15,6 +15,7 @@ If an atom required is not parameterised, you may add it to the dictionary in th
 import numpy as np
 import numpy.typing as npt
 from scipy.sparse import csr_matrix, triu, dok_matrix
+from copy import deepcopy
 
 __all__ = [
     'Molecule',
@@ -433,7 +434,7 @@ class Molecule:
                                    dihedral_connectivities)
 
     @staticmethod
-    def Kabsch_rmsd(molecule, referance_structure, Hydrogens=True):
+    def Kabsch_rmsd(molecule, referance_structure, Hydrogens=True, Mirror=False):
         """
         A method to calculate the minimum RMSD between two geometries through the Kabsch algorithm.
         This works by calculating the centroid of each vector X (i.e. `sum(x)/ len(x)`) and aligning the two
@@ -455,15 +456,57 @@ class Molecule:
             raise MoleculeTypeError('Kabsch algorithm requires the reference to be another molecular structure')
         if molecule.natoms != referance_structure.natoms:
             raise MoleculeTypeError('The two molecules must have the same dimensions')
+
+        #new_molecule = deepcopy(molecule)
+        #new_referance_structure = deepcopy(referance_structure)
+
         if not Hydrogens:
-            molecule, referance_structure = Molecule.__remove_hydrogens(molecule, referance_structure)
-            print(molecule)
+            molecule, referance_structure = Molecule.__remove_hydrogens_pair(molecule, referance_structure)
+
+        aligned_molecule, aligned_ref = molecule.centre_align(referance_structure)
+        lrms = aligned_molecule.__lrmsd(aligned_ref)
+
+        if Mirror:
+            molecule.reflect(axis=0)
+            aligned_molecule, aligned_ref = molecule.centre_align(referance_structure)
+            lrms_mirrored = aligned_molecule.__lrmsd(aligned_ref)
+            molecule.reflect(axis=0)
+            if lrms_mirrored < lrms:
+                print("Mirrored isomers detected")
+                lrms = lrms_mirrored
+
+        return lrms
+
+
+    def __lrmsd(self, reference_molecule):
+        diff = self.coordinates - reference_molecule.coordinates
+        lrms = float(np.sqrt((np.sum(diff**2))/ self.natoms))
+        return lrms
+
+    def centre_align(self, referance_structure):
+        """
+        Takes an instance of Molecule and given some reference Molecule translate the coordinates to align centriod with
+        the origin and find the optimal rotation matrix that aligns the Molecule instance with respect to reference_structure.
+
+        Parameters
+        ----------
+        referance_structure : Molecule
+            reference structure to align the Molecule instance with
+
+        Returns
+        -------
+        molecule: Molecule
+            a new instance of the original Molecule which has been aligned at the centroid and rotated to overlap the reference geometry
+        ref: Molecule
+            a new instance of the input reference_structure that has been aligned and rotated
+        """
+        molecule, ref = deepcopy(self), deepcopy(referance_structure)
         nc = np.shape(molecule.coordinates)[1]
-        p0 = np.sum(molecule.coordinates, axis=0)/molecule.natoms
-        q0 = np.sum(referance_structure.coordinates, axis=0)/referance_structure.natoms
-        geom1 = molecule.coordinates - p0
-        geom2 = referance_structure.coordinates - q0 # translate coords to align centroid w origin
-        cov = np.transpose(geom1) @ geom2 # calculate covariance matrix
+        p0 = np.sum(molecule.coordinates, axis=0)/self.natoms
+        q0 = np.sum(ref.coordinates, axis=0)/ref.natoms
+        molecule.coordinates = molecule.coordinates - p0
+        ref.coordinates = ref.coordinates - q0 # translate coords to align centroid w origin
+        cov = np.transpose(molecule.coordinates) @ ref.coordinates # calculate covariance matrix
         v, s, wh = np.linalg.svd(cov) # do single value decomp. on covariance matrix
         w = wh.T
         w = np.squeeze(w)
@@ -473,13 +516,44 @@ class Molecule:
             eye[nc - 1, nc - 1] = -1
         u = w @ eye @ np.transpose(v) # rotation matrix that minimises the rmsd
         for i in range(molecule.natoms):
-            geom1[i, :] = u @ geom1[i, :]
-        diff = geom1 - geom2
-        lrms = np.sqrt((np.sum(diff**2))/ molecule.natoms)
-        return float(lrms)
+            molecule.coordinates[i, :] = u @ molecule.coordinates[i, :]
+        return molecule, ref
+
+
+    def reflect(self, axis):
+        if axis == 0:
+            self.coordinates[:, 0] = -self.coordinates[:, 0]
+        elif axis == 1:
+            self.coordinates[:, 1] = -self.coordinates[:, 1]
+        elif axis == 2:
+            self.coordinates[:, 2] = -self.coordinates[:, 2]
+        else:
+            raise IndexError("Only three axes present, choose one of x, y or z")
+
+    def remove_hydrogens(self):
+        """
+        Takes an instance of Molecule and returns a new Molecule instance which is a copy of the
+        original instance but with the hydrogens removed.
+
+        Returns
+        -------
+        mol_noh: Molecule
+            copy of Molecule instance with the hydrogens removed
+        """
+        new_mol, new_labels = [], []
+        for i in range(self.natoms):
+            if self.atom_labels[i] != 'H':
+                new_mol.append(self.coordinates[i, :])
+                new_labels.append(self.atom_labels[i, :])
+            else:
+                pass
+        mol_noh = Molecule(new_labels, np.array(new_mol))
+        return mol_noh
+
 
     @staticmethod
-    def __remove_hydrogens(mol1, mol2):
+    def __remove_hydrogens_pair(mol1, mol2):
+        """Removes hydrogens for two molecule pairs - only used internally in Kabsch_rmsd"""
         mol_a, mol_b, labels_a, labels_b = [], [], [], []
         for i in range(mol1.natoms):
             if mol1.atom_labels[i] != 'H':
@@ -697,9 +771,9 @@ if __name__ == "__main__":
 
     traj = ensemble.trajs[0]
     mol = traj.geometries[0]
+    molb = traj.geometries[10]
 
-    #rmsd_h = traj.Kabsch_rmsd(mol)
-    rmsd_noh = traj.Kabsch_rmsd(mol, Hydrogens=False)
+    rmsd = Molecule.Kabsch_rmsd(mol, molb)
 
 
     print('done')
