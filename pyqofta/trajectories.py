@@ -407,6 +407,13 @@ class TrajectorySH(Trajectory):
         trj_rmsd = self.broadcast(mol.Molecule.Kabsch_rmsd, reference_structure, Hydrogens, Mirror)
         return np.array(list(trj_rmsd))
 
+    def remove_hydrogens(self):
+        noh_traj = []
+        for time_step in self:
+            noh_traj.append(time_step.remove_hydrogens())
+        tvec = self.time
+        return TrajectorySH(noh_traj, tvec)
+
 
 
 class TrajectoryIterator:
