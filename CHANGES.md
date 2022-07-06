@@ -22,3 +22,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - `remove_hydrogens` method in `Molecule` class returns a new instance of the Molecule with the hydrogens removed
 - `reflect` method in `Molecule` class changes the state of the Molecule instance and reflects it along a user specified axis
 
+## 0.3.1
+- `calculate_internal_coords` function within `Molecule` now takes an optional series of arguments corrosponding to bond, angle, dihedral connectivities
+

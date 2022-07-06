@@ -381,12 +381,13 @@ class Molecule:
         centre_mass = tot / np.sum(self.Zs)
         return centre_mass
 
-    def calculate_internal_coords(self):
+
+    def internal_coordinates(self, bond_connectivity=None, angle_connectivity=None, dihedral_connectivity=None):
         """
-        A method to calculate *all* internal coordinates that describe the molecular structure.
-        If the user is only interested in a selection of internal coordinates, for example one bond length or angle etc.,
-        it is recommended to call the `bond_length`, `angle` or `dihedral` methods directly by specifying the atom
-        connectivity.
+        A method to calculate internal coordinates. By default, it calculates all possible internal coordinates
+        based on the assumption that the cartesian coordinates are ordered in terms of their connectivity.
+        By specifying lists of connectivities one can selectively calculate internal coordinates, or provide
+        connectivities in the event that the cartesian cooordinates do not contain connectivity information.
 
         Returns
         -------
@@ -395,6 +396,18 @@ class Molecule:
             an attribute for each IC and the list of connectivities for each. In the case that of di- and tri-atomic
             molecules that have no defined angle or dihedral, those instance variables will be empty.
 
+        """
+        if bond_connectivity or angle_connectivity or dihedral_connectivity:
+            IC = self.__calculate_internal_coords_connect(bond_connectivity, angle_connectivity, dihedral_connectivity)
+        else:
+            IC = self.__calculate_internal_coords()
+        return IC
+
+
+    def __calculate_internal_coords(self):
+        """
+        A method to calculate *all* internal coordinates that describe the molecular structure.
+        Based on assumption cartesian contains connectivity information.
         """
         bond_lengths, angles, dihedrals = [], [], []
         bond_connectivities, angle_connectivities, dihedral_connectivities = [], [], []
@@ -432,6 +445,31 @@ class Molecule:
                                    angle_connectivities,
                                    dihedrals,
                                    dihedral_connectivities)
+
+    def __calculate_internal_coords_connect(self, bond_connectivity, angle_connectivity, dihedral_connectivity):
+        """Calculates ICs based on connectivities"""
+        bond_lengths, angles, dihedrals = [], [], []
+        if bond_connectivity:
+            nb = len(bond_connectivity)
+            for b in range(nb):
+                bond_lengths.append(self.bond_length(bond_connectivity[b]))
+        if angle_connectivity:
+            na = len(angle_connectivity)
+            for a in range(na):
+                angles.append(self.angle(angle_connectivity[a]))
+        if dihedral_connectivity:
+            nd = len(dihedral_connectivity)
+            for d in range(nd):
+                dihedrals.append(self.dihedral(dihedral_connectivity[d]))
+
+        return InternalCoordinates(bond_lengths,
+                                   bond_connectivities,
+                                   angles,
+                                   angle_connectivities,
+                                   dihedrals,
+                                   dihedral_connectivities)
+
+
 
     @staticmethod
     def Kabsch_rmsd(molecule, referance_structure, Hydrogens=True, Mirror=False):
@@ -544,7 +582,7 @@ class Molecule:
         for i in range(self.natoms):
             if self.atom_labels[i] != 'H':
                 new_mol.append(self.coordinates[i, :])
-                new_labels.append(self.atom_labels[i, :])
+                new_labels.append(self.atom_labels[i])
             else:
                 pass
         mol_noh = Molecule(new_labels, np.array(new_mol))

@@ -238,7 +238,7 @@ class Trajectory:
     def __iter__(self):
         return TrajectoryIterator(self)
 
-    def calculate_internal_coords(self):
+    def calculate_internal_coords(self, bond_connectivity=None, angle_connectivity=None, dihedral_connectivity=None):
         """
         A method to calculate *all* internal coordinates over the whole trajectory.
         If the user is only interested in a selection of internal coordinates, for example one bond length or angle etc.,
@@ -256,7 +256,7 @@ class Trajectory:
         """
         bond_lengths, angles, dihedrals = [], [], []
         for idx, timestep in enumerate(self):
-            ICs = timestep.calculate_internal_coords() # ret an InternalCoordinates type
+            ICs = timestep.internal_coordinates(bond_connectivity, angle_connectivity, dihedral_connectivity) # ret an InternalCoordinates type
             bond_lengths.append(ICs.bonds)
             angles.append(ICs.angles)
             dihedrals.append(ICs.dihedrals)
