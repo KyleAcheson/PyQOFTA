@@ -463,11 +463,11 @@ class Molecule:
                 dihedrals.append(self.dihedral(dihedral_connectivity[d]))
 
         return InternalCoordinates(bond_lengths,
-                                   bond_connectivities,
+                                   bond_connectivity,
                                    angles,
-                                   angle_connectivities,
+                                   angle_connectivity,
                                    dihedrals,
-                                   dihedral_connectivities)
+                                   dihedral_connectivity)
 
 
 
@@ -510,7 +510,7 @@ class Molecule:
             lrms_mirrored = aligned_molecule.__lrmsd(aligned_ref)
             molecule.reflect(axis=0)
             if lrms_mirrored < lrms:
-                print("Mirrored isomers detected")
+                #print("Mirrored isomers detected")
                 lrms = lrms_mirrored
 
         return lrms
