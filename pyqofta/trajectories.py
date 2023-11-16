@@ -164,6 +164,27 @@ class Ensemble:
         return avg_traj
 
 
+
+    def calculate_internal_coords(self, bond_connectivity=None, angle_connectivity=None, dihedral_connectivity=None):
+        bond_lengths, angles, dihedrals = [], [], []
+        for idx, traj in enumerate(self):
+            ICs = traj.calculate_internal_coords(bond_connectivity, angle_connectivity, dihedral_connectivity) # ret an InternalCoordinates type
+            bond_lengths.append(ICs.bonds)
+            angles.append(ICs.angles)
+            dihedrals.append(ICs.dihedrals)
+            if idx == 0:
+                bond_connect = ICs.bond_connectivity
+                angle_connect = ICs.angle_connectivity
+                dihedral_connect = ICs.dihedral_connectivity
+        return mol.InternalCoordinates(bond_lengths,
+                                       bond_connect,
+                                       angles,
+                                       angle_connect,
+                                       dihedrals,
+                                       dihedral_connect)
+
+
+
     def broadcast(self, func, *args):
         """
         Broadcast a general function over the instance of `Ensemble`
